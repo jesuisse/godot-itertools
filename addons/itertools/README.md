@@ -60,10 +60,10 @@ The following iterators are implemented:
    Empty iterators produce null values in the arrays the iterator returns.
 
 `itertools` also provides a few helper functions such as:
-	
-	`list`: Takes an iterator as an argument and returns a list of all the elements the
-	iterator yields. Obviously, this only works for finite iterators. Don't use this with
-	iterators which yield infinite streams of objects.
+
+   `list`: Takes an iterator as an argument and returns a list of all the elements the
+   iterator yields. Obviously, this only works for finite iterators. Don't use this with
+   iterators which yield infinite streams of objects.
 
 ## Usage
 
