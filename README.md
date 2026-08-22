@@ -4,6 +4,11 @@
 This is a small addon which provides a library of custom iterators inspired
 by Python's itertools module.
 
+## Custom Iterators
+
+GDScript supports custom iterators. This allows you to iterate over any object which implements
+the iterator protocol.
+
 The following iterators are implemented:
 	
    `integers`: Provides iterator version of the builtin `range()` function.
