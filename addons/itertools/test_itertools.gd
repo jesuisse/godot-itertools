@@ -127,7 +127,7 @@ func test_string_it_simple():
 func test_filter_it_identity():
 	var test_array = range(10)
 	var it = itertools.array_slice(test_array, 0, 10)
-	var filter_it = itertools.filter(it, func (x): return true)
+	var filter_it = itertools.filter(func (x): return true, it)
 	var result = []
 	for i in filter_it:
 		result.append(i)
@@ -136,7 +136,7 @@ func test_filter_it_identity():
 func test_filter_it_empty():
 	var test_array = []
 	var it = itertools.array_slice(test_array, 0, 0)
-	var filter_it = itertools.filter(it, func (x): return true)
+	var filter_it = itertools.filter(func (x): return true, it)
 	var result = []
 	for i in filter_it:
 		result.append(i)
@@ -145,7 +145,7 @@ func test_filter_it_empty():
 func test_filter_it_even():
 	var test_array = range(10)
 	var it = itertools.array_slice(test_array, 0, 10)
-	var filter_it = itertools.filter(it, func (x): return x % 2 == 0)
+	var filter_it = itertools.filter(func (x): return x % 2 == 0, it)
 	var result = []
 	for i in filter_it:
 		result.append(i)

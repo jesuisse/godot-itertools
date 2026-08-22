@@ -99,8 +99,8 @@ static func enumerate_from(start: int, ...iterators) -> AbstractIterator:
 ## [param predicate] callable.
 ##
 ## ex: filter(range(5), func (x): x<2) will yield 0,1
-static func filter(iterator: AbstractIterator, predicate: Callable) -> AbstractIterator:
-	return FilterIterator.new(iterator, predicate)
+static func filter(predicate: Callable, iterator: AbstractIterator) -> AbstractIterator:
+	return FilterIterator.new(predicate, iterator)
 
 ## Returns an iterator which maps all elements using
 ## [param function]. If there is more than a single 
@@ -253,7 +253,7 @@ class FilterIterator extends AbstractIterator:
 	var _predicate: Callable
 	var _it
 	
-	func _init(iterator, predicate):
+	func _init(predicate, iterator):
 		_it = iterator
 		_predicate = predicate
 

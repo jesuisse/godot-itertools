@@ -24,9 +24,9 @@ The following iterators are implemented:
    `string_slice`: Iterates over a portion of a string (or the whole string). This 
    is just a thin wrapper around `array_slice` provided for convenience.
 
-   `generate_seq`: Takes any number of arguments and returns an interator which 
-   yields them in sequence. This is a convenience function to easily pack short sequences
-   into an iterator. You can achieve the same thing with array_slice.
+   `generate_seq`: Takes any number of arguments and returns an interator which
+   yields them in sequence. This is a convenience function to easily pack short
+   sequences into an iterator. You can achieve the same thing with array_slice.
    
    `filter`: Filters values from another iterator based on a predicate function.
 
@@ -81,7 +81,7 @@ Then use them like so:
 		sum += number
 	print(sum)
 	
-	var no_multiples_of_five = itertools.filter(itertools.integer_range(100), func (x): return x % 5 != 0)
+	var no_multiples_of_five = itertools.filter(func (x): return x % 5 != 0, itertools.integer_range(0, 100))
 	for number in no_multiples_of_five:
 		print(number)
 
