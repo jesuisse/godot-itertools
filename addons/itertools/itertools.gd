@@ -10,7 +10,7 @@
 ## [param start] with size [param count]. If you do not specify
 ## count, all elements of the array will be iterated over starting
 ## at start.
-static func array_slice(array, start: int = 0, stop: int = -1) -> AbstractIterator:
+static func array_slice(array: Array, start: int = 0, stop: int = -1) -> AbstractIterator:
 	return ArraySliceIterator.new(array, start, stop)
 
 ## This is an iterator version of the range() function. It
@@ -23,7 +23,7 @@ static func array_slice(array, start: int = 0, stop: int = -1) -> AbstractIterat
 ## a is larger than b, the range will count down from a up to, but
 ## not including b. If you provide three arguments, the last one
 ## defines the step size.
-static func integers(first, ...args) -> AbstractIterator:
+static func integers(first: int, ...args) -> AbstractIterator:
 	var start
 	var stop
 	var increment
@@ -51,7 +51,7 @@ static func integers(first, ...args) -> AbstractIterator:
 ## [param predicate] callable.
 ##
 ## ex: filter(range(5), func (x): x<2) will yield 0,1
-static func filter(iterator, predicate) -> AbstractIterator:
+static func filter(iterator: AbstractIterator, predicate: Callable) -> AbstractIterator:
 	return FilterIterator.new(iterator, predicate)
 
 ## Returns an iterator which maps all elements using
@@ -61,7 +61,7 @@ static func filter(iterator, predicate) -> AbstractIterator:
 ## a single mapped result. 
 ## If the iterators yield an unequal number of elements,
 ## map stops when the first iterator is exhausted.
-static func map(function, ...iterators) -> AbstractIterator:
+static func map(function: Callable, ...iterators) -> AbstractIterator:
 	return MapIterator.new(function, iterators)
 
 ## Returns an iterator which will yield an array of values, 
@@ -80,12 +80,12 @@ static func chain(...iterators) -> AbstractIterator:
 ## Repeats [param iterator] a specific ([param count]) number
 ## of times. If count is -1 or left out, this is equal to the
 ## behaviour of the cycle iterator.
-static func repeat(iterator, count=-1) -> AbstractIterator:
+static func repeat(iterator: AbstractIterator, count : int=-1) -> AbstractIterator:
 	return RepeatIterator.new(iterator, count)
 
 ## This is an iterator which never exhausts; it simple starts
 ## from the beginning when it's iterator is exhausted.
-static func cycle(iterator) -> AbstractIterator:
+static func cycle(iterator: AbstractIterator) -> AbstractIterator:
 	return RepeatIterator.new(iterator)
 
 
