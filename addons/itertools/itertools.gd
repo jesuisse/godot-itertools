@@ -22,8 +22,6 @@ static func string_slice(str: String, start: int = 0, stop: int = -1) -> Abstrac
 	for i in len(str):	
 		array[i] = str[i]
 	return ArraySliceIterator.new(array, start, stop)
-	
-	
 
 ## This is an iterator version of the range() function. It
 ## returns an iterator which will produce a sequence of values
@@ -89,16 +87,18 @@ static func zip(...iterators) -> AbstractIterator:
 static func chain(...iterators) -> AbstractIterator:
 	return ChainIterator.new(iterators)
 
-## Repeats [param iterator] a specific ([param count]) number
-## of times. If count is -1 or left out, this is equal to the
-## behaviour of the cycle iterator.
-static func repeat(iterator: AbstractIterator, count : int=-1) -> AbstractIterator:
-	return RepeatIterator.new(iterator, count)
+## Repeats [param value] exactly [param count] number
+## of times. If count is -1 or left out, this will repeat 
+## the value indefinitely, so be careful as this will yield
+## an infinite stream of the value.
+static func repeat(value: Variant, count : int=-1) -> AbstractIterator:
+	return RepeatIterator.new(value, count)
 
-## This is an iterator which never exhausts; it simple starts
-## from the beginning when it's iterator is exhausted.
-static func cycle(iterator: AbstractIterator) -> AbstractIterator:
-	return RepeatIterator.new(iterator)
+## This cycles through another [param iterator] exactly [param count] times,
+## or indefinitely if count is -1 or unspecified. Note that values are not
+## cached and the provided iterator is expected to be restartable. 
+static func cycle(iterator: AbstractIterator, count: int=-1) -> AbstractIterator:
+	return CycleIterator.new(iterator, count)
 
 ## Returns an iterator which yields only the items from the [param data] iterator
 ## for which there is a corresponding true value in the [param selectors] iterator,
@@ -332,7 +332,7 @@ class ChainIterator extends AbstractIterator:
 		return _its[args[1]]._iter_get(args[0][0])
 
 
-class RepeatIterator extends AbstractIterator:
+class CycleIterator extends AbstractIterator:
 	var _it
 	var _count
 	
@@ -363,6 +363,30 @@ class RepeatIterator extends AbstractIterator:
 			
 	func _iter_get(state):
 		return _it._iter_get(state[0][0])
+
+
+class RepeatIterator extends AbstractIterator:
+	var _value
+	var _count
+	
+	func _init(value, count=-1):
+		_value = value
+		_count = count
+	
+	func _iter_init(state) -> bool:
+		# Initialize state
+		state[0] = _count
+		return _count != 0
+		
+	func _iter_next(state) -> bool:		
+		if state[0] != -1:
+			# one less round remaining
+			state[0] -= 1
+		return state[0] != 0
+			
+	func _iter_get(state):
+		return _value
+
 
 
 class CompressIterator extends AbstractIterator:

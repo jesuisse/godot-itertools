@@ -233,25 +233,17 @@ func test_cycle_it_empty():
 	assert_eq(result, [])
 	assert_eq(i, 0)
 
-func test_repeat_it_empty():
-	var it1 = itertools.integers(0)
-	var cycle = itertools.repeat(it1, 3)	
-	var result = []
-	for item in cycle:
-		result.append(item)		
-	assert_eq(result, [])
-
-func test_repeat_it_simple():
+func test_cycle_it_simple():
 	var it1 = itertools.integers(4)
-	var cycle = itertools.repeat(it1, 3)
+	var cycle = itertools.cycle(it1, 3)
 	var result = []
 	for item in cycle:
 		result.append(item)		
 	assert_eq(result, [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3])
 	
-func test_repeat_it_cycling():
+func test_cycle_it_cycling():
 	var it1 = itertools.integers(2)
-	var cycle = itertools.repeat(it1)
+	var cycle = itertools.cycle(it1)
 	var result = []
 	var i = 0
 	for item in cycle:
@@ -260,6 +252,34 @@ func test_repeat_it_cycling():
 		if i >= 8:
 			break
 	assert_eq(result, [0, 1, 0, 1, 0, 1, 0, 1])
+
+func test_repeat_it_n_times():	
+	# we test the iterator with n repeats, where n is 0-9
+	for i in range(10):
+		var repeat = itertools.repeat('A', i)
+		var result = []
+		var expected = []
+		expected.resize(i)
+		expected.fill('A')
+		for item in repeat:
+			result.append(item)
+		assert_eq(result, expected)
+
+func test_repeat_it_forever():	
+	var repeat = itertools.repeat('A')
+	var result = []
+	var expected = []
+	# we can't really test an infinite sequence, so we
+	# see if we can produce 100 elements before aborting
+	expected.resize(100)
+	expected.fill('A')	
+	var i = 0
+	for item in repeat:
+		result.append(item)
+		if i == 99:
+			break
+		i += 1
+	assert_eq(result, expected)
 
 func test_map_it_single():
 	var it1 = itertools.integers(1, 5)

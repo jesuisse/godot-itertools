@@ -30,10 +30,13 @@ The following iterators are implemented:
    
    `chain`: Chains an arbitrary number of iterators together and iterates over them in sequence
    
-   `repeat`: Takes an iterator and repeats the elements it yields a specific number of times
+   `repeat`: Takes a constant value and repeats it a certain number of times, or indefinitely.
+   In the latter case, it is *your responsibility* to provide an exit strategy from the for 
+   loop which uses this iterator!
    
-   `cycle`: Takes an iterator and repeats the elements it yields indefinitely. (It is *your 
-   responsibility* to provide an exit strategy from the for loop which uses this iterator!)
+   `cycle`: Takes an iterator and repeats the elements it yields a certain number of times, or
+    indefinitely if you want to (In that case, it is *your responsibility* to provide an exit 
+	strategy from the for loop which uses this iterator!)
    
    `product`: Takes n iterators and produces all combinations of the values they yield. So if
    you have iterators that produce the sequences ABC and 12, you get A1, A2, B1, B2, C1, C2.
@@ -63,3 +66,6 @@ Then use them like so:
 
 `itertools` comes with a number of unit tests for GUT. However, the third-party GUT addon is not
  included in this addon. You need to install it yourself if you want to run the tests.
+
+The tests document how the various iterators can be used, so they might be worth a look if you 
+have trouble figuring out how to use the iterators.
