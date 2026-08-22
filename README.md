@@ -23,6 +23,10 @@ The following iterators are implemented:
 
    `string_slice`: Iterates over a portion of a string (or the whole string). This 
    is just a thin wrapper around `array_slice` provided for convenience.
+
+   `generate_seq`: Takes any number of arguments and returns an interator which 
+   yields them in sequence. This is a convenience function to easily pack short sequences
+   into an iterator. You can achieve the same thing with array_slice.
    
    `filter`: Filters values from another iterator based on a predicate function.
 
@@ -54,6 +58,12 @@ The following iterators are implemented:
    Example: If you have iterators that produce the sequences ABC and 12, you get 
    A1, A2, B1, B2, C1, C2. Specifically, you get ['A' 1], ['A', 2], ['B', 1'] etc.[br]
    Empty iterators produce null values in the arrays the iterator returns.
+
+`itertools` also provides a few helper functions such as:
+	
+	`list`: Takes an iterator as an argument and returns a list of all the elements the
+	iterator yields. Obviously, this only works for finite iterators. Don't use this with
+	iterators which yield infinite streams of objects.
 
 ## Usage
 

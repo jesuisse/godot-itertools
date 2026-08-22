@@ -5,6 +5,17 @@
 ##
 ## Requires Godot >= 4.5 for variadic argument list support.
 
+## Convenience funtion which wraps the provided arguments in an ArraySliceIterator.
+static func generate_seq(...args) -> AbstractIterator:
+	return ArraySliceIterator.new(args)
+
+## Convenience function which generates all elements of the provided [param iterator]
+## and returns them as a list. This only makes sense for finite iterators!
+static func list(iterator: AbstractIterator) -> Array:
+	var results = []
+	for x in iterator:
+		results.append(x)
+	return results
 
 ## Returns an iterator for the [param array] slice starting at 
 ## [param start] with size [param count]. If you do not specify

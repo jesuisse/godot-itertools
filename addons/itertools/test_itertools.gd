@@ -496,3 +496,15 @@ func test_product_with_single_value():
 	for item in product:
 		result.append(item)
 	assert_eq(result, [[0, 0, 0], [0, 0, 1], [1, 0, 0], [1, 0, 1], [2, 0, 0], [2, 0, 1]])
+
+
+func test_generate_seq():
+	var result = []
+	for word in itertools.generate_seq("one", "two", "three"):
+		result.append(word)
+	assert_eq(result, ["one", "two", "three"])
+
+func test_list():
+	var result = []
+	var l = itertools.list(itertools.integer_range(10))
+	assert_eq(l, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
