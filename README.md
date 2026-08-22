@@ -33,7 +33,7 @@ it into scripts as follows:
 Then use them like so:
 	
 	var lots_of_even_numbers = itertools.integers(0, 50000, 2)
-	sum = 0
+	var sum = 0
 	for number in lots_of_even_numbers:
 		sum += number
 	print(sum)
