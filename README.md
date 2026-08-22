@@ -6,8 +6,9 @@ by Python's itertools module.
 
 ## Custom Iterators
 
-GDScript supports custom iterators. This allows you to iterate over any object which implements
-the iterator protocol.
+GDScript supports custom iterators. This allows you to use for loops to iterate 
+over any object which implements the iterator protocol. This addon provides 
+a set of useful custom iterators for you. 
 
 The following iterators are implemented:
 	
@@ -57,4 +58,8 @@ Then use them like so:
 	var no_multiples_of_five = itertools.filter(itertools.integers(100), func (x): return x % 5 != 0)
 	for number 	in no_multiples_of_five:
 		print(number)
-		
+
+## Unit testing
+
+`itertools` comes with a number of unit tests for GUT. However, the third-party GUT addon is not
+ included in this addon. You need to install it yourself if you want to run the tests.
