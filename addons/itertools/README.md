@@ -12,12 +12,17 @@ a set of useful custom iterators for you.
 
 The following iterators are implemented:
 	
-   `integers`: Provides iterator version of the builtin `range()` function.
-   
-   `array_slice`: Iterates over a portion of an array (or the whole array)
+   `integer_range`: Provides iterator version of the builtin `range()` function. Providing
+   and increment of 0 generates a warning.
 
-   `string_slice`: Iterates over a portion of a string (or the whole string). This is 
-   just a thin wrapper around `array_slice` provided for convenience.
+   `integers`: Provides an infinite iterator version of the builtin `range()` 
+   function (without the stop value). It is *your responsibility* to provide an exit
+   strategy from the for loop which uses this iterator!
+   
+   `array_slice`: Iterates over a portion of an array (or the whole array).
+
+   `string_slice`: Iterates over a portion of a string (or the whole string). This 
+   is just a thin wrapper around `array_slice` provided for convenience.
    
    `filter`: Filters values from another iterator based on a predicate function.
 
@@ -27,7 +32,13 @@ The following iterators are implemented:
    `map`: Maps elements from a set of n iterators using a function of n arguments.
    
    `zip`: Iterates over elements from an arbitrary number of iterators and returns them as an array
-   
+
+   `enumerate`: Like zip, but adds an integer count to the front of the returned array. The count
+   starts at 0.
+
+   `enumerate1`: Like zip, but adds an integer count to the front of the returned array. The count
+   starts at 1.   
+
    `chain`: Chains an arbitrary number of iterators together and iterates over them in sequence
    
    `repeat`: Takes a constant value and repeats it a certain number of times, or indefinitely.
@@ -38,8 +49,10 @@ The following iterators are implemented:
     indefinitely if you want to (In that case, it is *your responsibility* to provide an exit 
 	strategy from the for loop which uses this iterator!)
    
-   `product`: Takes n iterators and produces all combinations of the values they yield. So if
-   you have iterators that produce the sequences ABC and 12, you get A1, A2, B1, B2, C1, C2.
+   `product`: Takes n iterators and produces all combinations of the values they yield. Each 
+   combination is returned as an array.[br]
+   Example: If you have iterators that produce the sequences ABC and 12, you get 
+   A1, A2, B1, B2, C1, C2. Specifically, you get ['A' 1], ['A', 2], ['B', 1'] etc.[br]
    Empty iterators produce null values in the arrays the iterator returns.
 
 ## Usage
@@ -47,19 +60,19 @@ The following iterators are implemented:
 Download and install itertools in your addons folder (or anywhere else you like). Then load
 it into scripts as follows:
 	
-    # Adjust the path as needed
+	# Adjust the path as needed
 	const itertools = preload("res://addons/itertools/itertools.gd")
 
 Then use them like so:
 	
-	var lots_of_even_numbers = itertools.integers(0, 50000, 2)
+	var lots_of_even_numbers = itertools.integer_range(0, 50000, 2)
 	var sum = 0
 	for number in lots_of_even_numbers:
 		sum += number
 	print(sum)
 	
-	var no_multiples_of_five = itertools.filter(itertools.integers(100), func (x): return x % 5 != 0)
-	for number 	in no_multiples_of_five:
+	var no_multiples_of_five = itertools.filter(itertools.integer_range(100), func (x): return x % 5 != 0)
+	for number in no_multiples_of_five:
 		print(number)
 
 ## Unit testing

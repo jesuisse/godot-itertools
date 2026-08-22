@@ -33,7 +33,7 @@ static func string_slice(str: String, start: int = 0, stop: int = -1) -> Abstrac
 ## a is larger than b, the range will count down from a up to, but
 ## not including b. If you provide three arguments, the last one
 ## defines the step size.
-static func integers(first: int, ...args) -> AbstractIterator:
+static func integer_range(first: int, ...args) -> AbstractIterator:
 	var start
 	var stop
 	var increment
@@ -54,8 +54,34 @@ static func integers(first: int, ...args) -> AbstractIterator:
 		increment = args[1]
 	if len(args) > 2:
 		push_warning("superfluous arguments were ignored")
+	assert(increment > 0 or stop <= start, "Iterator cannot reach stop value")
+	assert(increment < 0 or stop >= start, "Iterator cannot reach stop value")
 	return RangeIterator.new(start, stop, increment)
+
+## Returns all integers starting with [param start] at an step of [param increment]
+static func integers(start: int=0, increment: int = 1) -> AbstractIterator:
+	# We provide a stop value that can't be reached, which means the iterator
+	# will never exhaust itself.
+	if increment == 0:
+		push_warning("Iterator cannot proceed with an increment of 0. Use repeat to produce a stream of constant values")
 	
+	return InfiniteRangeIterator.new(start, increment)
+
+## Enumerates the elements of the iterators, yielding [0, value 0], [1, value 1] etc. Works with
+## multiple iterators and stops as soon as the first iterator is exhausted.
+## This is a thin wrapper around zip.
+static func enumerate(...iterators):
+	var args = [integers()]
+	args.append_array(iterators)
+	return zip.callv(args)
+
+## Enumerates the elements of the iterators, starting at 1 and yielding [1, value 0], [2, value 1] 
+## etc. Works with multiple iterators and stops as soon as the first iterator is exhausted.
+## This is a thin wrapper around zip.
+static func enumerate1(...iterators):
+	var args = [integers(1)]
+	args.append_array(iterators)
+	return zip.callv(args)
 
 ## Returns an iterator which filters [param iterator] using the
 ## [param predicate] callable.
@@ -163,10 +189,6 @@ class RangeIterator extends AbstractIterator:
 	var _increment: int
 
 	func _init(start : int, stop: int, increment: int =1):
-		assert(increment != 0, "Iterator cannot proceed")
-		assert(increment > 0 or stop <= start, "Iterator cannot reach stop value")
-		assert(increment < 0 or stop >= start, "Iterator cannot reach stop value")
-			
 		_start = start
 		_stop = stop
 		_increment = increment
@@ -174,8 +196,11 @@ class RangeIterator extends AbstractIterator:
 	func _should_continue(index):
 		if _increment > 0:
 			return index < _stop
-		else:
+		elif _increment < 0:
 			return index > _stop
+		else:
+			# an increment of 0 means we stop immediately
+			return false
 	
 	func _iter_init(state):
 		state[0] = _start
@@ -187,6 +212,26 @@ class RangeIterator extends AbstractIterator:
 	
 	func _iter_get(index):
 		return index
+
+class InfiniteRangeIterator extends AbstractIterator:
+	var _start: int	
+	var _increment: int
+
+	func _init(start : int, increment: int =1):
+		_start = start		
+		_increment = increment
+		assert(increment != 0, "iterator cannot proceed with increment of 0")
+	
+	func _iter_init(state):
+		state[0] = _start
+		return true
+	
+	func _iter_next(state):
+		state[0] += _increment
+		return true
+	
+	func _iter_get(index):
+		return index	
 
 
 ## An iterator which will kick another iterator and only return
