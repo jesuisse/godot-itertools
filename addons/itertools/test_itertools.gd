@@ -1,0 +1,283 @@
+## These are unittests which you can run if you install the GUT addon.
+## The addon is a third-party addon not affiliated with itertools, and is
+## not included in the itertools codebase.
+
+extends GutTest
+
+const itertools = preload("itertools.gd")
+
+func test_integers_it_empty():
+	var it = itertools.integers(0, 0)
+	var expected = []
+	var result = []
+	for i in it:
+		result.append(i)	
+	assert_eq(result, expected)
+
+func test_integers_it_simple():
+	var it = itertools.integers(0, 5)
+	var expected = [0, 1, 2, 3, 4]
+	var result = []
+	for i in it:
+		result.append(i)	
+	assert_eq(result, expected)
+
+func test_integers_it_single_arg():
+	var it = itertools.integers(5)
+	var expected = [0, 1, 2, 3, 4]
+	var result = []
+	for i in it:
+		result.append(i)	
+	assert_eq(result, expected)
+	
+func test_integers_it_simple_with_different_start():
+	var it = itertools.integers(2, 5)
+	var expected = [2, 3, 4]
+	var result = []
+	for i in it:
+		result.append(i)	
+	assert_eq(result, expected)
+	
+func test_integers_it_even():
+	var it = itertools.integers(2, 10, 2)
+	var expected = [2, 4, 6, 8]
+	var result = []
+	for i in it:
+		result.append(i)	
+	assert_eq(result, expected)
+
+func test_integers_it_reverse():
+	var it = itertools.integers(5, 2, -1)
+	var expected = [5, 4, 3]
+	var result = []
+	for i in it:
+		result.append(i)	
+	assert_eq(result, expected)
+
+func test_integers_it_two_arg_reverse():
+	var it = itertools.integers(5, 2)
+	var expected = [5, 4, 3]
+	var result = []
+	for i in it:
+		result.append(i)	
+	assert_eq(result, expected)
+
+func test_array_it_identity():
+	var test_array = range(10)
+	var it = itertools.array_slice(test_array)
+	var result = []
+	for i in it:
+		result.append(i)
+	assert_eq(result, test_array)
+
+func test_array_it_empty():
+	var test_array = range(10)
+	var it = itertools.array_slice(test_array, 2, 2)
+	var result = []
+	for i in it:
+		result.append(i)
+	assert_eq(result, [])
+
+func test_array_it_simple():
+	var test_array = range(10)
+	var it = itertools.array_slice(test_array, 3, 8)
+	var expected = [3,4,5,6,7]
+	var result = []
+	for i in it:
+		result.append(i)
+	assert_eq(result, expected)
+	
+func test_filter_it_identity():
+	var test_array = range(10)
+	var it = itertools.array_slice(test_array, 0, 10)
+	var filter_it = itertools.filter(it, func (x): return true)
+	var result = []
+	for i in filter_it:
+		result.append(i)
+	assert_eq(result, test_array)
+	
+func test_filter_it_empty():
+	var test_array = []
+	var it = itertools.array_slice(test_array, 0, 0)
+	var filter_it = itertools.filter(it, func (x): return true)
+	var result = []
+	for i in filter_it:
+		result.append(i)
+	assert_eq(result, [])
+	
+func test_filter_it_even():
+	var test_array = range(10)
+	var it = itertools.array_slice(test_array, 0, 10)
+	var filter_it = itertools.filter(it, func (x): return x % 2 == 0)
+	var result = []
+	for i in filter_it:
+		result.append(i)
+	assert_eq(result, [0, 2, 4, 6, 8])
+	
+func test_zip_it_simple():
+	var it1 = itertools.array_slice(range(3))
+	var it2 = itertools.array_slice(['A', 'B', 'C'])
+	var zip = itertools.zip(it1, it2)
+	var result = []
+	for pair in zip:
+		result.append(pair)
+	assert_eq(result, [[0, 'A'], [1, 'B'], [2, 'C']])
+
+func test_zip_it_empty():
+	var it1 = itertools.array_slice(range(3))
+	var it2 = itertools.array_slice([])
+	var zip = itertools.zip(it1, it2)
+	var result = []
+	for pair in zip:
+		result.append(pair)
+	assert_eq(result, [])	
+	
+func test_zip_it_triple():
+	var it1 = itertools.integers(3)
+	var it2 = itertools.array_slice(['A', 'B', 'C'])
+	var it3 = itertools.integers(3, 0, -1)	
+	var zip = itertools.zip(it1, it2, it3)
+	var result = []
+	for triple in zip:
+		result.append(triple)
+	assert_eq(result, [[0, 'A', 3], [1, 'B', 2], [2, 'C', 1]])
+
+func test_chain_it_single():
+	var it1 = itertools.integers(3)
+	var chain = itertools.chain(it1)
+	var result = []
+	for item in chain:
+		result.append(item)
+	assert_eq(result, [0, 1, 2])
+	
+func test_chain_it_empty():
+	var it1 = itertools.integers(0)
+	var chain = itertools.chain(it1)
+	var result = []
+	for item in chain:
+		result.append(item)
+	assert_eq(result, [])
+
+func test_chain_it_simple():
+	var it1 = itertools.integers(3)
+	var it2 = itertools.integers(4, 8)
+	var chain = itertools.chain(it1, it2)
+	var result = []
+	for item in chain:
+		result.append(item)
+	assert_eq(result, [0, 1, 2, 4, 5, 6, 7])
+
+func test_chain_it_second_empty():
+	var it1 = itertools.integers(3)
+	var it2 = itertools.integers(0)	
+	var chain = itertools.chain(it1, it2)
+	var result = []
+	for item in chain:
+		result.append(item)
+	assert_eq(result, [0, 1, 2])
+
+
+func test_chain_it_successors_empty():
+	var it1 = itertools.integers(3)
+	var it2 = itertools.integers(0)	
+	var it3 = itertools.integers(0)
+	var chain = itertools.chain(it1, it2, it3)
+	var result = []
+	for item in chain:
+		result.append(item)
+	assert_eq(result, [0, 1, 2])
+	
+
+func test_chain_it_middle_empty():
+	var it1 = itertools.integers(3)
+	var it2 = itertools.integers(0)	
+	var it3 = itertools.integers(5, 7)
+	var chain = itertools.chain(it1, it2, it3)
+	var result = []
+	for item in chain:
+		result.append(item)
+	assert_eq(result, [0, 1, 2, 5, 6])	
+	
+func test_cycle_it():
+	var it1 = itertools.integers(3)
+	var cycle = itertools.cycle(it1)
+	var i = 0
+	var result = []
+	for item in cycle:
+		result.append(item)
+		i += 1
+		if i >= 9:
+			break
+	assert_eq(result, [0, 1, 2, 0, 1, 2, 0, 1, 2])
+			
+func test_cycle_it_empty():
+	var it1 = itertools.integers(0)
+	var cycle = itertools.cycle(it1)
+	var i = 0
+	var result = []
+	for item in cycle:
+		result.append(item)
+		i += 1
+		if i >= 9:
+			break
+	assert_eq(result, [])
+	assert_eq(i, 0)
+
+func test_repeat_it_empty():
+	var it1 = itertools.integers(0)
+	var cycle = itertools.repeat(it1, 3)	
+	var result = []
+	for item in cycle:
+		result.append(item)		
+	assert_eq(result, [])
+
+func test_repeat_it_simple():
+	var it1 = itertools.integers(4)
+	var cycle = itertools.repeat(it1, 3)
+	var result = []
+	for item in cycle:
+		result.append(item)		
+	assert_eq(result, [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3])
+	
+func test_repeat_it_cycling():
+	var it1 = itertools.integers(2)
+	var cycle = itertools.repeat(it1)
+	var result = []
+	var i = 0
+	for item in cycle:
+		result.append(item)
+		i += 1
+		if i >= 8:
+			break
+	assert_eq(result, [0, 1, 0, 1, 0, 1, 0, 1])
+
+func test_map_it_single():
+	var it1 = itertools.integers(1, 5)
+	var map = itertools.map(func (x): return x*x, it1)
+	var result = []	
+	for item in map:
+		result.append(item)
+	assert_eq(result, [1, 4, 9, 16])
+
+func test_map_it_multiple():
+	var it1 = itertools.integers(1, 5)
+	var it2 = itertools.array_slice(["one", "two", "three", "four"])
+	var map = itertools.map(func (x, y): return str(x) + y, it1, it2)
+	var result = []	
+	for item in map:
+		result.append(item)
+	assert_eq(result, ["1one", "2two", "3three", "4four"])
+
+	
+func test_map_it_nonequal_sizes():
+	var it1 = itertools.integers(1, 3)
+	var it2 = itertools.array_slice(["one", "two", "three", "four"])
+	var map = itertools.map(func (x, y): return str(x) + y, it1, it2)
+	var result = []	
+	for item in map:
+		result.append(item)
+	assert_eq(result, ["1one", "2two"])
+	
+	
+	
+	
