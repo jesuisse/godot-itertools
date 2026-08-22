@@ -7,12 +7,19 @@ by Python's itertools module.
 The following iterators are implemented:
 	
    `integers`: Provides iterator version of the builtin `range()` function.
+   
    `array_slice`: Iterates over a portion of an array.
+   
    `filter`: Filters another iterator based on a predicate function.
+   
    `map`: Maps each element of an iterator onto another value using a callable.
+   
    `zip`: Iterates over elements from an arbitrary number of iterators and returns them as an array
+   
    `chain`: Chains an arbitrary number of iterators together and iterates over them in sequence
+   
    `repeat`: Takes an iterator and repeats the elements it yields a specific number of times
+   
    `cycle`: Takes an iterator and repeats the elements it yields indefinitely.
    
 ## Usage
@@ -25,7 +32,7 @@ it into scripts as follows:
 
 Then use them like so:
 	
-	var lot_of_even_numbers = itertools.integers(0, 50000, 2)
+	var lots_of_even_numbers = itertools.integers(0, 50000, 2)
 	sum = 0
 	for number in lots_of_even_numbers:
 		sum += number
