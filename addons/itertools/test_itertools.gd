@@ -187,13 +187,13 @@ func test_enumerate():
 		result.append(x)
 	assert_eq(result, [[0, 'A', 'a'], [1, 'B', 'b'], [2, 'C', 'c'], [3, 'D', 'd']])
 	
-func test_enumerate1():
+func test_enumerate_from():
 	var it1 = itertools.string_slice("ABCDEFG")
 	var it2 = itertools.string_slice("abcd")
 	var result = []
-	for x in itertools.enumerate1(it1, it2):
+	for x in itertools.enumerate_from(5, it1, it2):
 		result.append(x)
-	assert_eq(result, [[1, 'A', 'a'], [2, 'B', 'b'], [3, 'C', 'c'], [4, 'D', 'd']])
+	assert_eq(result, [[5, 'A', 'a'], [6, 'B', 'b'], [7, 'C', 'c'], [8, 'D', 'd']])
 
 func test_chain_it_single():
 	var it1 = itertools.integer_range(3)

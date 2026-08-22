@@ -33,11 +33,11 @@ The following iterators are implemented:
    
    `zip`: Iterates over elements from an arbitrary number of iterators and returns them as an array
 
-   `enumerate`: Like zip, but adds an integer count to the front of the returned array. The count
-   starts at 0.
+   `enumerate`: Convenience function to add an integer count to the front of the arrays zip 
+   returns. The count starts at 0.
 
-   `enumerate1`: Like zip, but adds an integer count to the front of the returned array. The count
-   starts at 1.   
+   `enumerate_from`: Convenience function to add an integer count to the front of the arrays zip
+   returns. The count starts at the value you provide.
 
    `chain`: Chains an arbitrary number of iterators together and iterates over them in sequence
    

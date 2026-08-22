@@ -68,18 +68,19 @@ static func integers(start: int=0, increment: int = 1) -> AbstractIterator:
 	return InfiniteRangeIterator.new(start, increment)
 
 ## Enumerates the elements of the iterators, yielding [0, value 0], [1, value 1] etc. Works with
-## multiple iterators and stops as soon as the first iterator is exhausted.
-## This is a thin wrapper around zip.
-static func enumerate(...iterators):
+## multiple iterators and stops as soon as the first iterator is exhausted. [br]
+## This is a convenience function which wraps zip.
+static func enumerate(...iterators) -> AbstractIterator:
 	var args = [integers()]
 	args.append_array(iterators)
 	return zip.callv(args)
 
-## Enumerates the elements of the iterators, starting at 1 and yielding [1, value 0], [2, value 1] 
-## etc. Works with multiple iterators and stops as soon as the first iterator is exhausted.
-## This is a thin wrapper around zip.
-static func enumerate1(...iterators):
-	var args = [integers(1)]
+## Enumerates the elements of the iterators, starting at [param start] and yielding 
+## [start, value 0], [start+1, value 1] etc. Works with multiple iterators and stops
+## as soon as the first iterator is exhausted. [br]
+## This is a convenience function which wraps zip.
+static func enumerate_from(start: int, ...iterators) -> AbstractIterator:
+	var args = [integers(start)]
 	args.append_array(iterators)
 	return zip.callv(args)
 
