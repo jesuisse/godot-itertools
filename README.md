@@ -63,7 +63,9 @@ The following iterators are implemented:
    ['A', 2], ['B', 1'] etc. [br]
    Empty iterators produce null values in the arrays the iterator returns.
 
-`itertools` also provides a few useful functions which *don't* return iterators, such as:
+## Non-iterator helper functions:
+
+`itertools` also provides a few useful functions which *don't* return iterators:
 
    `list`: Takes an iterator as an argument and returns a list of all the elements the
    iterator yields. Obviously, this only works for finite iterators. Don't use this with
