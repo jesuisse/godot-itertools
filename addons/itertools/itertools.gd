@@ -13,6 +13,18 @@
 static func array_slice(array: Array, start: int = 0, stop: int = -1) -> AbstractIterator:
 	return ArraySliceIterator.new(array, start, stop)
 
+## Convenience function that returns an iterator which iterates over
+## a slice of a string. See array_slice for details, as this simply
+## wraps array_slice around a string.
+static func string_slice(str: String, start: int = 0, stop: int = -1) -> AbstractIterator:
+	var array = []
+	array.resize(len(str))
+	for i in len(str):	
+		array[i] = str[i]
+	return ArraySliceIterator.new(array, start, stop)
+	
+	
+
 ## This is an iterator version of the range() function. It
 ## returns an iterator which will produce a sequence of values
 ## starting with [param start], stopping before [param stop],
@@ -87,6 +99,24 @@ static func repeat(iterator: AbstractIterator, count : int=-1) -> AbstractIterat
 ## from the beginning when it's iterator is exhausted.
 static func cycle(iterator: AbstractIterator) -> AbstractIterator:
 	return RepeatIterator.new(iterator)
+
+## Returns an iterator which yields only the items from the [param data] iterator
+## for which there is a corresponding true value in the [param selectors] iterator,
+## e.g. data[0] if selectors[0], data[1] if selectors[1] etc.
+static func compress(data: AbstractIterator, selectors: AbstractIterator) -> AbstractIterator:
+	return CompressIterator.new(data, selectors)
+	
+## Returns an iterator which returns the cartesian product of all the elements in 
+## the provided iterators. So if you pass ABC and 12, you will get A1, A2, B1,
+## B2, C1, C2. The returned iterator represents each combination as an array of
+## individual values.[br]
+## If you pass an empty iterator or one that's already consumed, it will be
+## represented by null values in the Arrays the iterator returns. [br]
+## Implementation note: Each iterator is consumed at initialization and the 
+## values each iterator yields are stored in memory. Therefore, this iterator 
+## cannot deal with iterators which yield an infinite stream of elements.
+static func product(...iterators) -> AbstractIterator:
+	return CartesianProductIterator.new(iterators)
 
 
 ## This simply defines the custom iterator protocol used by GDScript to make
@@ -333,3 +363,108 @@ class RepeatIterator extends AbstractIterator:
 			
 	func _iter_get(state):
 		return _it._iter_get(state[0][0])
+
+
+class CompressIterator extends AbstractIterator:
+	
+	var _data : AbstractIterator
+	var _selector: AbstractIterator
+	
+	func _init(data: AbstractIterator, selectors: AbstractIterator):
+		_data = data
+		_selector = selectors
+
+	func _forward_to_selected_item(state):
+		state = state[0]
+		var remaining_sel = true
+		var remaining_data = true
+		while remaining_sel and remaining_data:
+			var is_selected = _selector._iter_get(state[1][0])
+			# found a selected item
+			if is_selected:
+				break
+			remaining_sel = _selector._iter_next(state[1])
+			remaining_data = _data._iter_next(state[0])
+		return remaining_sel and remaining_data
+	
+	func _iter_init(state) -> bool:
+		# state of _it and current element
+		state[0] = [[null], [null]]
+		var remaining_sel = _selector._iter_init(state[0][1])
+		var remaining_data = _data._iter_init(state[0][0])
+		if remaining_sel and remaining_data:
+			return _forward_to_selected_item(state)
+		else:
+			return false
+
+	func _iter_next(state) -> bool:		
+		var remaining_sel = _selector._iter_next(state[0][1])
+		var remaining_data = _data._iter_next(state[0][0])
+		if remaining_sel and remaining_data:
+			return _forward_to_selected_item(state)
+		else:
+			return false
+
+	func _iter_get(state):
+		return _data._iter_get(state[0][0])
+		
+
+class CartesianProductIterator extends AbstractIterator:
+	
+	var _values: Array = []
+	
+	func _init(iterators):
+		# build lists of all values by consuming all iterators
+		_values.resize(iterators.size())
+		for i in range(iterators.size()):
+			_values[i] = []
+			for value in iterators[i]:
+				_values[i].append(value)
+
+	func _add_one(state) -> bool:
+		state = state[0]
+		var l = _values.size()
+		var i = l-1
+		while i >= 0:
+			state[i] += 1
+			if state[i] >= _values[i].size():
+				state[i] = 0
+			else:
+				break
+			i -= 1
+		# we are fully consumed if we've overflowed
+		return i > 0 or state[0] > 0
+			
+
+	func _iter_init(state) -> bool:
+		state[0] = []
+		var l = _values.size()
+		state[0].resize(l)
+		var count = 0
+		for i in range(l):
+			state[0][i] = 0
+			count += _values[i].size()
+		return count > 0
+		
+	func _iter_next(state) -> bool:
+		return _add_one(state)
+	
+	func _iter_get(state) -> Array:
+		var result = []
+		var l = _values.size()
+		result.resize(l)
+		for i in range(l):
+			if _values[i].size() == 0:
+				result[i] = null
+			else:
+				result[i] = _values[i][state[i]]
+		return result
+		
+		
+		
+		
+		
+		
+		
+		
+	

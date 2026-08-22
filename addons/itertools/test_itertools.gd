@@ -87,6 +87,16 @@ func test_array_it_simple():
 		result.append(i)
 	assert_eq(result, expected)
 	
+func test_string_it_simple():
+	var test_string = "HELLO WORLD"
+	var it = itertools.string_slice("HELLO WORLD!", 6, 11)
+	var result = []
+	var expected = ['W', 'O', 'R', 'L', 'D']
+	for i in it:
+		result.append(i)
+	assert_eq(result, expected)
+	
+	
 func test_filter_it_identity():
 	var test_array = range(10)
 	var it = itertools.array_slice(test_array, 0, 10)
@@ -278,6 +288,150 @@ func test_map_it_nonequal_sizes():
 		result.append(item)
 	assert_eq(result, ["1one", "2two"])
 	
+func test_compress_identity():
+	var sel = itertools.array_slice([1, 1, 1])
+	var data = itertools.integers(0, 3)
+	var compress = itertools.compress(data, sel)
+	var result = []	
+	for item in compress:
+		result.append(item)
+	assert_eq(result, [0, 1, 2])
+
+func test_compress_empty_selector():
+	var sel = itertools.array_slice([])
+	var data = itertools.integers(0, 3)
+	var compress = itertools.compress(data, sel)
+	var result = []	
+	for item in compress:
+		result.append(item)
+	assert_eq(result, [])
 	
+func test_compress_empty_data():
+	var sel = itertools.array_slice([1, 1, 1])
+	var data = itertools.integers(0)
+	var compress = itertools.compress(data, sel)
+	var result = []	
+	for item in compress:
+		result.append(item)
+	assert_eq(result, [])
+
+func test_compress_different_sizes_longer_data():
+	var sel = itertools.array_slice([1, 1, 1])
+	var data = itertools.integers(10)
+	var compress = itertools.compress(data, sel)
+	var result = []	
+	for item in compress:
+		result.append(item)
+	assert_eq(result, [0, 1, 2])
+
+func test_compress_different_sizes_longer_selector():
+	var sel = itertools.array_slice([1, 1, 1, 1, 1])
+	var data = itertools.integers(3)
+	var compress = itertools.compress(data, sel)
+	var result = []	
+	for item in compress:
+		result.append(item)
+	assert_eq(result, [0, 1, 2])
+
+func test_compress_selection_pattern1():
+	var sel = itertools.array_slice([1, 0, 1, 1, 1])
+	var data = itertools.integers(5)
+	var compress = itertools.compress(data, sel)
+	var result = []	
+	for item in compress:
+		result.append(item)
+	assert_eq(result, [0, 2, 3, 4])
 	
+func test_compress_selection_pattern2():
+	var sel = itertools.array_slice([1, 1, 1, 0, 0])
+	var data = itertools.integers(5)
+	var compress = itertools.compress(data, sel)
+	var result = []	
+	for item in compress:
+		result.append(item)
+	assert_eq(result, [0, 1, 2])
+
+func test_compress_selection_pattern3():
+	var sel = itertools.array_slice([0, 0, 0, 1, 1])
+	var data = itertools.integers(5)
+	var compress = itertools.compress(data, sel)
+	var result = []	
+	for item in compress:
+		result.append(item)
+	assert_eq(result, [3, 4])	
+	
+func test_compress_selection_pattern5():
+	var sel = itertools.array_slice([0, 0, 1, 1, 0])
+	var data = itertools.integers(5)
+	var compress = itertools.compress(data, sel)
+	var result = []	
+	for item in compress:
+		result.append(item)
+	assert_eq(result, [2, 3])	
+
+func test_compress_selection_pattern6():
+	var sel = itertools.array_slice([1, 1, 0, 0, 1])
+	var data = itertools.integers(5)
+	var compress = itertools.compress(data, sel)
+	var result = []	
+	for item in compress:
+		result.append(item)
+	assert_eq(result, [0, 1, 4])	
+
+
+func test_product_no_iterators():	
+	var product = itertools.product()
+	var result = []
+	for item in product:
+		result.append(item)
+	assert_eq(result, [])
+	
+func test_product_empty():
+	var it1 = itertools.integers(0)
+	var it2 = itertools.integers(0)
+	# note we can't use the same iterator because prodcut will exhaust it!
+	var product = itertools.product(it1, it2)
+	var result = []
+	for item in product:
+		result.append(item)
+	assert_eq(result, [])
+
+func test_product_identity():
+	var it1 = itertools.integers(5)
+	var product = itertools.product(it1)
+	var result = []
+	for item in product:
+		result.append(item)
+	assert_eq(result, [[0], [1], [2], [3], [4]])
+	
+func test_product_simple():
+	var it1 = itertools.integers(3)
+	var it2 = itertools.integers(2)
+	# note we can't use the same iterator because prodcut will exhaust it!
+	var product = itertools.product(it1, it2)
+	var result = []
+	for item in product:
+		result.append(item)
+	assert_eq(result, [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1]])
+	
+func test_product_with_empty():
+	var it1 = itertools.integers(3)
+	var it2 = itertools.integers(0)
+	var it3 = itertools.integers(2)
+	var product = itertools.product(it1, it2, it3)
+	var result = []
+	for item in product:
+		result.append(item)
+	assert_eq(result, [[0, null, 0], [0, null, 1], [1, null, 0], [1, null, 1], [2, null, 0], [2, null, 1]])
+
+func test_product_with_single_value():
+	var it1 = itertools.integers(3)
+	var it2 = itertools.integers(1)
+	var it3 = itertools.integers(2)	
+	var product = itertools.product(it1, it2, it3)
+	var result = []
+	for item in product:
+		result.append(item)
+	assert_eq(result, [[0, 0, 0], [0, 0, 1], [1, 0, 0], [1, 0, 1], [2, 0, 0], [2, 0, 1]])
+
 	

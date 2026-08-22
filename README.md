@@ -13,11 +13,17 @@ The following iterators are implemented:
 	
    `integers`: Provides iterator version of the builtin `range()` function.
    
-   `array_slice`: Iterates over a portion of an array.
+   `array_slice`: Iterates over a portion of an array (or the whole array)
+
+   `string_slice`: Iterates over a portion of a string (or the whole string). This is 
+   just a thin wrapper around `array_slice` provided for convenience.
    
-   `filter`: Filters another iterator based on a predicate function.
+   `filter`: Filters values from another iterator based on a predicate function.
+
+   `compress`: Selects items from a data iterator bassed on the corresponding truth
+   values of a selection iterator.
    
-   `map`: Maps each element of an iterator onto another value using a callable.
+   `map`: Maps elements from a set of n iterators using a function of n arguments.
    
    `zip`: Iterates over elements from an arbitrary number of iterators and returns them as an array
    
@@ -25,8 +31,13 @@ The following iterators are implemented:
    
    `repeat`: Takes an iterator and repeats the elements it yields a specific number of times
    
-   `cycle`: Takes an iterator and repeats the elements it yields indefinitely.
+   `cycle`: Takes an iterator and repeats the elements it yields indefinitely. (It is *your 
+   responsibility* to provide an exit strategy from the for loop which uses this iterator!)
    
+   `product`: Takes n iterators and produces all combinations of the values they yield. So if
+   you have iterators that produce the sequences ABC and 12, you get A1, A2, B1, B2, C1, C2.
+   Empty iterators produce null values in the arrays the iterator returns.
+
 ## Usage
 
 Download and install itertools in your addons folder (or anywhere else you like). Then load
