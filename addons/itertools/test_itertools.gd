@@ -498,11 +498,44 @@ func test_product_with_single_value():
 	assert_eq(result, [[0, 0, 0], [0, 0, 1], [1, 0, 0], [1, 0, 1], [2, 0, 0], [2, 0, 1]])
 
 
-func test_generate_seq():
+func test_iter_multiples():
 	var result = []
-	for word in itertools.generate_seq("one", "two", "three"):
+	for word in itertools.iter("one", "two", "three"):
 		result.append(word)
 	assert_eq(result, ["one", "two", "three"])
+
+func test_iter_empty():
+	var result = itertools.iter()
+	assert_push_error("cannot call iter() without arguments!")
+	assert_eq(result, null)
+
+
+func test_iter_single_list():
+	var result = []
+	# iter([22]) builds an iterator with the single element 22. iter(22) is an error.
+	# iter([]) builds an empty iterator. iter() is an error.
+	for c in itertools.iter([1]):
+		result.append(c)
+	assert_eq(result, [1])
+	
+func test_iter_single_string():
+	var result = []
+	for c in itertools.iter("Hello"):
+		result.append(c)
+	assert_eq(result, ['H', 'e', 'l', 'l', 'o'])
+
+func test_iter_single_vector2():
+	var result = []
+	for c in itertools.iter(Vector2(2.5, 1.5)):
+		result.append(c)
+	assert_eq(result, [2.5, 1.5])
+
+func test_iter_single_vector3():
+	var result = []
+	for c in itertools.iter(Vector3(2.5, 1.5, 8)):
+		result.append(c)
+	assert_eq(result, [2.5, 1.5, 8.0])
+	
 
 func test_list():
 	var result = []

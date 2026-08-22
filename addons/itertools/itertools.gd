@@ -1,13 +1,38 @@
-## itertools.gd (c) 2026 by Pascal Schuppli
+## itertools.gd (c) 2026-present by Pascal Schuppli
 ##
 ## This provides a selection of custom iterators inspired by Python's
 ## itertools module.
 ##
 ## Requires Godot >= 4.5 for variadic argument list support.
 
-## Convenience funtion which wraps the provided arguments in an ArraySliceIterator.
-static func generate_seq(...args) -> AbstractIterator:
-	return ArraySliceIterator.new(args)
+static func _wrap_in_iterator(data):
+	if data is Array:
+		return array_slice(data)
+	elif data is String:
+		return string_slice(data)
+	elif data is Vector2 or data is Vector2i:
+		return array_slice([data.x, data.y])
+	elif data is Vector3 or data is Vector3i:
+		return array_slice([data.x, data.y, data.z])
+	else:
+		push_error("cannot wrap data of unsupported type into an iterator!")
+		return null
+
+## Convenience function. If you pass only a single argument, this tries to return an iterator
+## for the data. Only some data types are supported. If you pass more than one 
+## argument, the arguments are wrapped into an iterator which will return them in sequence.
+## Calling iter without arguments produces an error. So: [br]
+## iter(22, 23) builds an iterator with the two elements 22 and 23.[br] 
+## iter([22]) builds an iterator with the single element 22. `iter(22)` is an error. [br]
+## iter([]) builds an empty iterator. `iter()` is an error.
+static func iter(...args):
+	if len(args) == 0:
+		push_error("cannot call iter() without arguments!")
+		return null
+	elif len(args) > 1:
+		return ArraySliceIterator.new(args)
+	else:
+		return _wrap_in_iterator(args[0])
 
 ## Convenience function which generates all elements of the provided [param iterator]
 ## and returns them as a list. This only makes sense for finite iterators!
@@ -473,7 +498,6 @@ class RepeatIterator extends AbstractIterator:
 		return _value
 
 
-
 class CompressIterator extends AbstractIterator:
 	
 	var _data : AbstractIterator
@@ -543,7 +567,6 @@ class CartesianProductIterator extends AbstractIterator:
 			i -= 1
 		# we are fully consumed if we've overflowed
 		return i > 0 or state[0] > 0
-			
 
 	func _iter_init(state) -> bool:
 		state[0] = []

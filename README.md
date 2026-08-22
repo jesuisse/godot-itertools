@@ -24,9 +24,15 @@ The following iterators are implemented:
    `string_slice`: Iterates over a portion of a string (or the whole string). This 
    is just a thin wrapper around `array_slice` provided for convenience.
 
-   `generate_seq`: Takes any number of arguments and returns an interator which
+   `iter`: Takes any number of arguments and returns an interator which
    yields them in sequence. This is a convenience function to easily pack short
-   sequences into an iterator. You can achieve the same thing with array_slice.
+   sequences into an iterator. You can achieve the same thing with array_slice. If
+   you only pass a single argument, iter tries to wrap it into a fitting iterator
+   depending on the type of the argument. Currently only strings, arrays and 
+   Vector2/Vector3 objects are supported. 
+   
+   Consider: `iter([22])` builds an iterator with the single element 22. `iter(22)` 
+   is an error. `iter([])` builds an empty iterator. `iter()` is an error.
    
    `filter`: Filters values from another iterator based on a predicate function.
 
