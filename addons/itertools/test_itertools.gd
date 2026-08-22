@@ -508,3 +508,29 @@ func test_list():
 	var result = []
 	var l = itertools.list(itertools.integer_range(10))
 	assert_eq(l, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+	
+func test_reduce_empty_error():
+	var result = itertools.reduce(func (x, y): return x+y, itertools.integer_range(0))
+	assert_push_error("cannot reduce with no available values and no initializer")
+	assert_eq(result, null)
+
+func test_reduce_empty_with_initializer():
+	# empty iterator, but we provide an initializer that will be returned as the result
+	var result = itertools.reduce(func (x, y): return x+y, itertools.integer_range(0), 77)	
+	assert_eq(result, 77)
+
+func test_reduce_single():
+	var result = itertools.reduce(func (x, y): return x+y, itertools.integer_range(3, 4))
+	assert_eq(result, 3)
+
+func test_reduce_single_with_initializer():
+	var result = itertools.reduce(func (x, y): return x+y, itertools.integer_range(3, 4), 77)
+	assert_eq(result, 80)
+	
+func test_reduce_simple():
+	var result = itertools.reduce(func (x, y): return x+y, itertools.integer_range(5))
+	assert_eq(result, 10)
+	
+func test_reduce_simple_with_initializer():
+	var result = itertools.reduce(func (x, y): return x+y, itertools.integer_range(5), 77)
+	assert_eq(result, 87)

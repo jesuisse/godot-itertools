@@ -35,7 +35,10 @@ The following iterators are implemented:
    
    `map`: Maps elements from a set of n iterators using a function of n arguments.
    
-   `zip`: Iterates over elements from an arbitrary number of iterators and returns them as an array
+   `zip`: Iterates over elements from an arbitrary number of iterators and returns them
+   one of each in an array. If you have two sequences ABC and 123, you get ['A', 1], ['B', 2]
+   and ['C', 3]. If the iterators don't contain the same amount of elements each, the
+   shortest one exhausts the iterator, so with ABC and 12, you only get ['A', 1] and ['B', 2].
 
    `enumerate`: Convenience function to add an integer count to the front of the arrays zip 
    returns. The count starts at 0.
@@ -50,20 +53,25 @@ The following iterators are implemented:
    loop which uses this iterator!
    
    `cycle`: Takes an iterator and repeats the elements it yields a certain number of times, or
-    indefinitely if you want to (In that case, it is *your responsibility* to provide an exit 
+	indefinitely if you want to (In that case, it is *your responsibility* to provide an exit 
 	strategy from the for loop which uses this iterator!)
    
-   `product`: Takes n iterators and produces all combinations of the values they yield. Each 
-   combination is returned as an array.[br]
-   Example: If you have iterators that produce the sequences ABC and 12, you get 
-   A1, A2, B1, B2, C1, C2. Specifically, you get ['A' 1], ['A', 2], ['B', 1'] etc.[br]
+   `product`: Takes n iterators and produces all combinations of the values they yield. The
+   product iterator returns the combinations as an array.[br]
+   Example: If you have iterators that produce the sequences ABC and 12, the cartesian 
+   product is A1, A2, B1, B2, C1, C2 and you get an iterator which will yield ['A', 1], 
+   ['A', 2], ['B', 1'] etc. [br]
    Empty iterators produce null values in the arrays the iterator returns.
 
-`itertools` also provides a few helper functions such as:
+`itertools` also provides a few useful functions which *don't* return iterators, such as:
 
    `list`: Takes an iterator as an argument and returns a list of all the elements the
    iterator yields. Obviously, this only works for finite iterators. Don't use this with
    iterators which yield infinite streams of objects.
+
+   `reduce`: Takes a two-argument function and calls it with the first and second values
+	of the iterator, then calls the function with the result and the next value successively
+	until all the elements are processed.
 
 ## Usage
 

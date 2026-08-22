@@ -156,6 +156,34 @@ static func compress(data: AbstractIterator, selectors: AbstractIterator) -> Abs
 static func product(...iterators) -> AbstractIterator:
 	return CartesianProductIterator.new(iterators)
 
+## Returns a value by passing the first two elements of [param iterator] to [param function]
+## and then calling the function again with the result and the third element, etc, until the
+## whole iterator has been processed. 
+## You can provide an [param initializer] value, which will be used as the first value. If you do
+## not provide an initializer and the iterator is empty, this is an error. If you do not provide
+## an initializer and the iterator has exactly one element, the element is returned as the
+## result of reduce.
+static func reduce(function: Callable, iterator: AbstractIterator, initializer=&'unset') -> Variant:
+	var state = [null]
+	var remaining = iterator._iter_init(state)
+	if not remaining:
+		if initializer is StringName and initializer == &'unset':
+			push_error("cannot reduce with no available values and no initializer")
+			return null
+		else:
+			return initializer
+	var first 
+	if initializer is StringName and initializer == &'unset':
+		first = iterator._iter_get(state[0])
+		remaining = iterator._iter_next(state)
+	else:
+		first = initializer
+	while remaining:
+		first = function.call(first, iterator._iter_get(state[0]))
+		remaining = iterator._iter_next(state)
+	return first
+
+
 
 ## This simply defines the custom iterator protocol used by GDScript to make
 ## the function signatures of the iterator functions explicit.
