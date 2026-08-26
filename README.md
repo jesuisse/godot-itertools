@@ -21,6 +21,9 @@ The following iterators are implemented:
    
    `array_slice`: Iterates over a portion of an array (or the whole array).
 
+   `array_rev`: Iterates over an array in reverse. Thin wrapper around array_slice 
+   provided for convenience.
+
    `string_slice`: Iterates over a portion of a string (or the whole string). This 
    is just a thin wrapper around `array_slice` provided for convenience.
 
