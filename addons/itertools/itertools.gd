@@ -43,11 +43,17 @@ static func list(iterator: AbstractIterator) -> Array:
 	return results
 
 ## Returns an iterator for the [param array] slice starting at 
-## [param start] with size [param count]. If you do not specify
-## count, all elements of the array will be iterated over starting
+## [param start] up to, but excluding [param stop]. If you do not specify
+## stop, all elements of the array will be iterated over starting
 ## at start.
-static func array_slice(array: Array, start: int = 0, stop: int = -1) -> AbstractIterator:
-	return ArraySliceIterator.new(array, start, stop)
+static func array_slice(array: Array, start: int = 0, stop: int = -1, increment: int = 0) -> AbstractIterator:
+	return ArraySliceIterator.new(array, start, stop, increment)
+
+## Returns an iterator for the [param array] but walks the array
+## backwards.
+static func array_rev(array: Array) -> AbstractIterator:
+	var l = -1 if array.is_empty() else array.size()-1
+	return ArraySliceIterator.new(array, l, -1, -1)
 
 ## Convenience function that returns an iterator which iterates over
 ## a slice of a string. See array_slice for details, as this simply
@@ -148,6 +154,10 @@ static func zip(...iterators) -> AbstractIterator:
 ## as arguments. These iterators will be iterated over in sequence,
 ## starting with the first.
 static func chain(...iterators) -> AbstractIterator:
+	# we do the type check only if we're running in the editor
+	if Engine.is_editor_hint():
+		for item in iterators:
+			assert(item is AbstractIterator, "all arguments to chain(...) must be iterators!")
 	return ChainIterator.new(iterators)
 
 ## Repeats [param value] exactly [param count] number
@@ -223,29 +233,44 @@ class ArraySliceIterator extends AbstractIterator:
 	
 	var _start: int
 	var _stop: int
+	var _increment: int
 	var _array: Array
 
-	func _init(array, start: int = 0, stop: int = -1):
-		if stop == -1: 
-			stop = array.size()
-		assert(start >= 0 and stop <= array.size(), "invalid parameters (out of array bounds)")
+	func _init(array, start: int = 0, stop: int = -1, increment = 0):
+		if stop == -1 and increment == 0: 
+			stop = array.size()		
+		if increment == 0:
+			increment = 1		
+		assert(increment < 0 or (start >= 0 and stop <= array.size()), "invalid parameters (out of array bounds)")
+		assert(increment != 0, "invalid parameter increment (can't be 0)")
 		_start = start
 		_stop = stop
+		_increment = increment
 		_array = array
 		
 	func _should_continue(index):
-		return index < _stop	
-	
+		if _increment > 0:
+			return index < _stop
+		elif _increment < 0:
+			return index > _stop
+		else:
+			# an increment of 0 means we stop immediately
+			return false
+			
 	func _iter_init(state):
 		state[0] = _start
 		return _should_continue(state[0])
 	
 	func _iter_next(state):
-		state[0] += 1
+		state[0] += _increment
 		return _should_continue(state[0])
 	
 	func _iter_get(index):
 		return _array[index]
+
+	func _to_string() -> String:
+		return "<ArrayIterator %d %d %d>" % [_start, _stop, _increment]
+
 
 ## This iterator simulates range(start, stop, increment)
 class RangeIterator extends AbstractIterator:
@@ -277,6 +302,10 @@ class RangeIterator extends AbstractIterator:
 	
 	func _iter_get(index):
 		return index
+		
+	func _to_string() -> String:
+		return "<RangeIterator %d %d %d>" % [_start, _stop, _increment]
+			
 
 class InfiniteRangeIterator extends AbstractIterator:
 	var _start: int	
@@ -298,6 +327,9 @@ class InfiniteRangeIterator extends AbstractIterator:
 	func _iter_get(index):
 		return index	
 
+	func _to_string() -> String:
+		return "<IntegerIterator %d %d>" % [_start, _increment]
+	
 
 ## An iterator which will kick another iterator and only return
 ## values for which a given predicate function returns true
@@ -334,6 +366,10 @@ class FilterIterator extends AbstractIterator:
 			
 	func _iter_get(state):
 		return state[1]
+		
+	func _to_string() -> String:
+		return "<FilterIterator>"
+		
 
 # Applies a function to every iterable
 class MapIterator extends AbstractIterator:
@@ -416,10 +452,19 @@ class ChainIterator extends AbstractIterator:
 	func _iter_init(args) -> bool:
 		# Initialize state for each sub-iterator
 		args[0] = [[null], 0]
-		if _its.size() > 0:
-			return _its[0]._iter_init(args[0][0])
-		else:
+		var l = _its.size()
+		if l == 0:
 			return false
+		var i = 0		
+		var remaining = _its[i]._iter_init(args[0][0])
+		while not remaining:
+			i += 1
+			args[0][1] = i
+			if i >= l:
+				return false
+			args[0][0] = [null]
+			remaining = _its[i]._iter_init(args[0][0])
+		return true
 
 	func _iter_next(args) -> bool:		
 		var i = args[0][1]

@@ -113,6 +113,24 @@ func test_array_it_simple():
 	for i in it:
 		result.append(i)
 	assert_eq(result, expected)
+
+func test_array_empty_rev():
+	var test_array = []
+	var it = itertools.array_rev(test_array)
+	var result = []
+	for i in it:
+		result.append(i)
+	assert_eq(result, [])
+
+
+func test_array_rev():
+	var test_array = [1, 2, 3, 4, 5]
+	var it = itertools.array_rev(test_array)
+	var result = []
+	for i in it:
+		result.append(i)
+	assert_eq(result, [5, 4, 3, 2, 1])
+
 	
 func test_string_it_simple():
 	var test_string = "HELLO WORLD"
@@ -229,6 +247,15 @@ func test_chain_it_second_empty():
 		result.append(item)
 	assert_eq(result, [0, 1, 2])
 
+func test_chain_it_first_empty():
+	var it1 = itertools.integer_range(0)
+	var it2 = itertools.integer_range(5, 7)
+	var chain = itertools.chain(it1, it2)
+	var result = []
+	for item in chain:
+		result.append(item)
+	assert_eq(result, [5, 6])
+
 
 func test_chain_it_successors_empty():
 	var it1 = itertools.integer_range(3)
@@ -239,7 +266,6 @@ func test_chain_it_successors_empty():
 	for item in chain:
 		result.append(item)
 	assert_eq(result, [0, 1, 2])
-	
 
 func test_chain_it_middle_empty():
 	var it1 = itertools.integer_range(3)
