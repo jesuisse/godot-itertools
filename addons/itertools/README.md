@@ -90,7 +90,25 @@ The following iterators are implemented:
    
    Given 1,2,3, returns [1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2] and [3,2,1].
    
+## Terminating and infinite iterators
+	
+Some iterators return an infinite stream of elements, such as `integers`. Others may
+not exhaust themselves depending on the arguments you pass at object construction. 
+Examples would be `repeat()` and `cycle()` without a repeat count.
 
+You can check whether an iterator is guaranteed to terminate by calling it's
+`terminate()` method. If it returns true, it guarantees it will terminate
+eventually. A false value is *not* a guarantee that it will produce an infinite
+number of elements, however.
+
+You can check whether an iterator is guaranteed to return an infinite stream
+of elements with the `is_infinite()` method. A true return value guarantees an
+infinite stream of elements. A false return value is *not* a guarantee that the
+iterator will terminate.
+
+Some iterators and functions, such as `list`, `product` and `permutations`, 
+will either stop the program (in debug mode) or produce incomplete results
+when you try to call them with non-terminating iterators.
 
 ## Non-iterator helper functions:
 
@@ -98,8 +116,7 @@ The following iterators are implemented:
 
    `list`: Takes an iterator as an argument and returns an array of all the elements the
    iterator yields. Obviously, this only works for finite iterators. Don't use this with
-   iterators which yield infinite streams of objects. If you do so, list will **not** 
-   return until it exhausts your memory and crashes your app!
+   iterators which yield infinite streams of objects. 
 
    `reduce`: Takes a two-argument function and calls it with the first and second values
 	of the iterator, then calls the function with the result and the next value successively

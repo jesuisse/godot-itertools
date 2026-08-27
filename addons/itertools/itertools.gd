@@ -38,6 +38,12 @@ static func iter(...args) -> Iterator:
 ## and returns them as a list. This only makes sense for finite iterators!
 static func list(iterator: Iterator) -> Array:
 	var results = []
+	assert(iterator.terminates(), "cannot handle non-terminating iterators")
+	
+	if not iterator.terminates():
+		push_error("list() argument is a non-terminating iterator - aborted")
+		return []
+	
 	for x in iterator:
 		results.append(x)
 	return results
@@ -274,13 +280,13 @@ static func reduce(function: Callable, iterator: Iterator, initializer=&'unset')
 	## Returns true if this iterator is finite. If this returns true,
 	## it guarantees that the iterator will exhaust itself sooner or 
 	## later. If it returns false, it might still be finite.
-	#@abstract func terminates() -> bool
+	@abstract func terminates() -> bool
 
 	# Returns true if this iterator produces an infinite series of elements.
 	# A return value of true is guaranteed to be correct. A return value of
 	# false may be wrong.
-	#@abstract func is_infinite() -> bool
-	pass
+	@abstract func is_infinite() -> bool
+
 
 ## Iterator which yields integers
 @abstract class IteratorOfInt extends Iterator:
@@ -461,7 +467,7 @@ class FilterIterator extends Iterator:
 		
 	func _to_string() -> String:
 		return "<FilterIterator>"
-		
+
 
 # Applies a function to every iterable
 class MapIterator extends Iterator:
@@ -500,6 +506,19 @@ class MapIterator extends Iterator:
 			args.append(_its[i]._iter_get(states[i][0]))
 		return _func.callv(args)
 
+	func terminates() -> bool:
+		for it in _its:
+			if it.terminates():
+				return true
+		return false
+		
+	func is_infinite() -> bool:
+		for it in _its:
+			if not it.is_infinite():
+				return false
+		return true
+
+
 
 class ZipIterator extends IteratorOfArray:	
 	var _its: Array
@@ -534,6 +553,19 @@ class ZipIterator extends IteratorOfArray:
 		for i in range(l):
 			zipped[i] = _its[i]._iter_get(states[i][0])
 		return zipped
+		
+	func terminates() -> bool:
+		for it in _its:
+			if it.terminates():
+				return true
+		return false
+	
+	func is_infinite() -> bool:
+		for it in _its:
+			if not it.is_infinite():
+				return false
+		return true
+		
 
 class ZipLongestIterator extends IteratorOfArray:
 	var _its: Array
@@ -580,6 +612,17 @@ class ZipLongestIterator extends IteratorOfArray:
 				zipped[i] = _its[i]._iter_get(states[i][0])
 		return zipped
 
+	func terminates() -> bool:
+		for it in _its:
+			if not it.terminates():
+				return false
+		return true
+
+	func is_infinite() -> bool:
+		for it in _its:
+			if it.is_infinite():
+				return true
+		return false
 
 class BatchIterator extends IteratorOfArray:
 	var _it: Iterator
@@ -616,6 +659,11 @@ class BatchIterator extends IteratorOfArray:
 				zipped[i] = _fill_value
 		return zipped
 
+	func terminates() -> bool:
+		return _it.terminates()
+	
+	func is_infinite() -> bool:
+		return _it.is_infinite()
 
 
 class ChainIterator extends Iterator:	
@@ -661,6 +709,17 @@ class ChainIterator extends Iterator:
 	func _iter_get(args):
 		return _its[args[1]]._iter_get(args[0][0])
 
+	func terminates() -> bool:		
+		for it in _its:
+			if not it.terminates():
+				return false
+		return true
+	
+	func is_infinite() -> bool:
+		for it in _its:
+			if it.is_infinite():
+				return true
+		return false
 
 class CycleIterator extends Iterator:
 	var _it
@@ -694,6 +753,11 @@ class CycleIterator extends Iterator:
 	func _iter_get(state):
 		return _it._iter_get(state[0][0])
 
+	func terminates() -> bool:
+		return _count != -1
+		
+	func is_infinite() -> bool:
+		return _count == -1
 
 class RepeatIterator extends Iterator:
 	var _value
@@ -716,6 +780,12 @@ class RepeatIterator extends Iterator:
 			
 	func _iter_get(state):
 		return _value
+	
+	func terminates() -> bool:
+		return _count != -1
+		
+	func is_infinite() -> bool:
+		return _count == -1
 
 
 class CompressIterator extends Iterator:
@@ -760,7 +830,13 @@ class CompressIterator extends Iterator:
 
 	func _iter_get(state):
 		return _data._iter_get(state[0][0])
+
+	func terminates() -> bool:
+		return _data.terminates() or _selector.terminates()
 		
+	func is_infinite() -> bool:
+		return _data.is_infinite() and _selector.is_infinite()
+
 
 class CartesianProductIterator extends IteratorOfArray:
 	
@@ -771,8 +847,12 @@ class CartesianProductIterator extends IteratorOfArray:
 		_values.resize(iterators.size())
 		for i in range(iterators.size()):
 			_values[i] = []
-			for value in iterators[i]:
-				_values[i].append(value)
+			assert(iterators[i].terminates(), "Cannot handle non-terminating iterator #%d" % (i+1))
+			if iterators[i].terminates():
+				# we protect production code from infinite loops by only doing this for terminating
+				# iterators
+				for value in iterators[i]:
+					_values[i].append(value)
 
 	func _add_one(state) -> bool:
 		state = state[0]
@@ -812,22 +892,34 @@ class CartesianProductIterator extends IteratorOfArray:
 				result[i] = _values[i][state[i]]
 		return result
 
+	func terminates() -> bool:
+		return true
+		
+	func is_infinite() -> bool:
+		return false
+		
+	
+
 
 class PermutationsIterator extends IteratorOfArray:
-	
+		
 	var _values : Array
 	var _taken : Array[bool]
 	var _perm: Array
 		
 	func _init(iterator: Iterator):
+		assert(iterator.terminates(), "Cannot handle non-terminating iterators")
 		_values = []
 		_taken = []
 		_perm = []
-		for item in iterator:
-			_values.append(item)
+		if iterator.terminates():
+			# we protect production code from an endless loop by only doing this
+			# with iterators guaranteed to terminate
+			for item in iterator:
+				_values.append(item)
 		_taken.resize(_values.size())
 		_perm.resize(_values.size())
-		
+			
 	func _iter_init(superstate) -> bool:
 		var state : Array[int]= []
 		if _values.is_empty():
@@ -852,7 +944,12 @@ class PermutationsIterator extends IteratorOfArray:
 		_perm[l-1] = _values[_taken.find(false)]
 		return _perm
 	
+	func terminates() -> bool:
+		return true
 		
+	func is_infinite() -> bool:
+		return false
+
 	## [param used] tells us which indices are still
 	## available, [param num] tells us which of those
 	## to take (0 for the first, 1 for the second etc).
