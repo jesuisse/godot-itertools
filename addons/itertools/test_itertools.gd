@@ -656,8 +656,25 @@ func test_permutations_single():
 func test_permutations_pair():
 	var it1 = itertools.string_slice("AB")
 	var permutations = itertools.permutations(it1)
-	var result = itertools.list(permutations)
-	assert_eq(result, [['A', 'B'], ['B', 'A']])
+	var result = itertools.list(itertools.map(func (x): return "".join(x), permutations))
+	assert_eq(result, ['AB', 'BA'])
+
+func test_permutations_triple():
+	var it1 = itertools.string_slice("ABC")
+	var permutations = itertools.permutations(it1)
+	var result = itertools.list(itertools.map(func (x): return "".join(x), permutations))
+	assert_eq(result, ['ABC', 'ACB', 'BAC', 'BCA', 'CAB', 'CBA'])
+
+func test_permutations_quad():
+	var it1 = itertools.string_slice("ABCD")
+	var permutations = itertools.permutations(it1)
+	var result = itertools.list(itertools.map(func (x): return "".join(x), permutations))
+	assert_eq(result, ['ABCD', 'ABDC', 'ACBD', 'ACDB', 'ADBC', 'ADCB',
+					   'BACD', 'BADC', 'BCAD', 'BCDA', 'BDAC', 'BDCA',
+					   'CABD', 'CADB', 'CBAD', 'CBDA', 'CDAB', 'CDBA',
+					   'DABC', 'DACB', 'DBAC', 'DBCA', 'DCAB', 'DCBA'])
+	
+
 
 
 func test_iter_multiples():

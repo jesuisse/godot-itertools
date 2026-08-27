@@ -141,6 +141,9 @@ static func filter(predicate: Callable, iterator: Iterator) -> Iterator:
 ## If the iterators yield an unequal number of elements,
 ## map stops when the first iterator is exhausted.
 static func map(function: Callable, ...iterators) -> Iterator:
+	if OS.is_debug_build():
+		for item in iterators:
+			assert(item is Iterator, "all arguments to map() following the Callable must be of type Iterator")
 	return MapIterator.new(function, iterators)
 
 ## Returns an iterator which will yield an array of values, 
@@ -150,7 +153,7 @@ static func map(function: Callable, ...iterators) -> Iterator:
 static func zip(...iterators) -> IteratorOfArray:
 	if OS.is_debug_build():
 		for item in iterators:
-			assert(item is Iterator, "all arguments to zip() must be iterators!")
+			assert(item is Iterator, "all arguments to zip() must be of type Iterator")
 	return ZipIterator.new(iterators)
 
 ## Returns an iterator which will yield an array of values,
@@ -162,7 +165,7 @@ static func zip(...iterators) -> IteratorOfArray:
 static func zip_longest(fill_value, ...iterators) -> IteratorOfArray:
 	if OS.is_debug_build():
 		for item in iterators:
-			assert(item is Iterator, "all arguments to zip_longest() must be iterators except the last, which can designate a fill value!")
+			assert(item is Iterator, "all arguments to zip_longest() after the fill value must be of type Iterator")
 	return ZipLongestIterator.new(fill_value, iterators)
 
 
@@ -173,7 +176,7 @@ static func chain(...iterators) -> Iterator:
 	# we do the type check only if we're running in the editor
 	if OS.is_debug_build():
 		for item in iterators:
-			assert(item is Iterator, "all arguments to chain(...) must be iterators!")
+			assert(item is Iterator, "all arguments to chain(...) must be of type Iterator")
 	return ChainIterator.new(iterators)
 
 ## Repeats [param value] exactly [param count] number
@@ -205,9 +208,17 @@ static func compress(data: Iterator, selectors: Iterator) -> Iterator:
 ## values each iterator yields are stored in memory. Therefore, this iterator 
 ## cannot deal with iterators which yield an infinite stream of elements.
 static func product(...iterators) -> IteratorOfArray:
+	if OS.is_debug_build():
+		for item in iterators:
+			assert(item is Iterator, "all argument of product(...) must be of type Iterator")
 	return CartesianProductIterator.new(iterators)
 
-static func permutations(iterator) -> IteratorOfArray:
+## Returns all possible orderings of the elements of [param iterator] as arrays.
+## elements are not repeated. 
+## The iterator is consumed and its elements stored a single time upon iterator
+## construction, so it must be finite!
+## Given 1,2,3, returns [1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2] and [3,2,1]
+static func permutations(iterator: Iterator) -> IteratorOfArray:
 	return PermutationsIterator.new(iterator)
 
 
@@ -263,12 +274,13 @@ static func reduce(function: Callable, iterator: Iterator, initializer=&'unset')
 	## Returns true if this iterator is finite. If this returns true,
 	## it guarantees that the iterator will exhaust itself sooner or 
 	## later. If it returns false, it might still be finite.
-	@abstract func terminates() -> bool
+	#@abstract func terminates() -> bool
 
 	# Returns true if this iterator produces an infinite series of elements.
 	# A return value of true is guaranteed to be correct. A return value of
 	# false may be wrong.
-	@abstract func is_infinite() -> bool
+	#@abstract func is_infinite() -> bool
+	pass
 
 ## Iterator which yields integers
 @abstract class IteratorOfInt extends Iterator:
@@ -854,11 +866,10 @@ class PermutationsIterator extends IteratorOfArray:
 				break
 		return p
 
-
 	func _addone(state) -> bool:
 		var l : int = state.size()
 		var max : int
-		var unfinished : bool = true
+		var unfinished : bool = l > 0
 		for i in range(l):
 			max = i+2
 			var x = l-i-1
@@ -870,35 +881,3 @@ class PermutationsIterator extends IteratorOfArray:
 			else:
 				break
 		return unfinished
-		
-
-	func permutations2(array: Array):
-		var state = []
-		var taken : Array[bool] = []
-		var fin = []
-		var l = array.size()
-		state.resize(l-1)
-		taken.resize(l)
-		state.fill(0)
-		taken.fill(false)
-		fin.resize(l)	
-		var unfinished = true
-		var num = 0
-		while unfinished:
-			taken.fill(false)
-			for i in range(l-1):
-				num = state[i]
-				num = _freeidx(num, taken) 
-				fin[i] = array[num]
-				taken[num]= true
-			fin[l-1] = array[taken.find(false)]
-			print("".join(fin), "   ", state)
-			unfinished = _addone(state)
-		
-		
-		
-		
-		
-		
-		
-	

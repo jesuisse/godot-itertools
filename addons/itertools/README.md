@@ -77,11 +77,20 @@ The following iterators are implemented:
 	strategy from the for loop which uses this iterator!)
    
    `product`: Takes n iterators and produces all combinations of the values they yield. The
-   product iterator returns the combinations as an array.[br]
+   product iterator returns the combinations as an array.
+
    Example: If you have iterators that produce the sequences ABC and 12, the cartesian 
    product is A1, A2, B1, B2, C1, C2 and you get an iterator which will yield ['A', 1], 
-   ['A', 2], ['B', 1'] etc. [br]
+   ['A', 2], ['B', 1'] etc.
+   
    Empty iterators produce null values in the arrays the iterator returns.
+
+   `permutations`: Takes an iterator and produces all possible orderings of it's elements,
+   without element repetitions.
+   
+   Given 1,2,3, returns [1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2] and [3,2,1].
+   Empty iterators produce null values in the arrays the iterator returns.
+
 
 ## Non-iterator helper functions:
 
