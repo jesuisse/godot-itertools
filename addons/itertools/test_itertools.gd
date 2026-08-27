@@ -6,6 +6,18 @@ extends GutTest
 
 const itertools = preload("itertools.gd")
 
+class _Dummy_Iterator extends Object:	
+	func _init():
+		pass
+	func _iter_init(state):
+		state[0] = 0
+		return true
+	func _iter_next(state):
+		state[0] += 1
+		return state[0] < 5
+	func _iter_get(state):
+		return "dummy"
+
 func test_list_empty():
 	var result = []
 	var l = itertools.list(itertools.integer_range(0))
@@ -691,7 +703,7 @@ func test_iter_multiples():
 func test_iter_empty():
 	var result = itertools.iter()
 	assert_push_error("cannot call iter() without arguments!")
-	assert_eq(result, null)
+	assert_eq(itertools.list(result), [])
 
 
 func test_iter_single_list():
@@ -720,6 +732,25 @@ func test_iter_single_vector3():
 		result.append(c)
 	assert_eq(result, [2.5, 1.5, 8.0])
 
+func test_iter_with_compatible_object():
+	var obj = _Dummy_Iterator.new()
+	# even though obj follows the iterator protocol, we need to wrap it
+	# into a WrapperIterator because obj is not a subclass of Iterator, which
+	# itertools functions and iterators require.
+	var it = itertools.iter(obj)
+	var result = []
+	for c in it:
+		result.append(c)
+	assert_eq(result, itertools.list(itertools.repeat("dummy", 5)))
+
+
+func test_iter_other_object():
+	var result = []
+	var node = Node.new()
+	for c in itertools.iter(node):
+		result.append(c)
+	assert_push_error_count(1)
+	node.free()
 	
 func test_reduce_empty_error():
 	var result = itertools.reduce(func (x, y): return x+y, itertools.integer_range(0))

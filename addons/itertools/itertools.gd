@@ -5,18 +5,34 @@
 ##
 ## Requires Godot >= 4.5 for variadic argument list support.
 
+const _protocol_methods = [&'_iter_init', &'_iter_next', &'_iter_get']
+
 static func _wrap_in_iterator(data) -> Iterator:
 	if data is Array:
 		return array_slice(data)
 	elif data is String:
 		return string_slice(data)
 	elif data is Vector2 or data is Vector2i:
+		# this changes the default Godot behaviour, which is to iterate from x to y as a range
 		return array_slice([data.x, data.y])
 	elif data is Vector3 or data is Vector3i:
 		return array_slice([data.x, data.y, data.z])
+	elif is_instance_of(data, Object):
+		var is_compatible = true
+		for method in _protocol_methods:
+			if not data.has_method(method):
+				is_compatible = false
+				break
+		if is_compatible:
+			return WrapperIterator.new(data)
+		else:
+			push_error("object %s is not compatible with iterator protocol" % str(data))
+			# return empty iterator as a failsafe
+			return integer_range(0)
 	else:
 		push_error("cannot wrap data of unsupported type into an iterator!")
-		return null
+		# return empty iterator as a failsafe
+		return integer_range(0)
 
 ## Convenience function. If you pass only a single argument, this tries to return an iterator
 ## for the data. Only some data types are supported. If you pass more than one 
@@ -28,7 +44,7 @@ static func _wrap_in_iterator(data) -> Iterator:
 static func iter(...args) -> Iterator:
 	if len(args) == 0:
 		push_error("cannot call iter() without arguments!")
-		return null
+		return integer_range(0)
 	elif len(args) > 1:
 		return ArraySliceIterator.new(args)
 	else:
@@ -897,8 +913,6 @@ class CartesianProductIterator extends IteratorOfArray:
 		
 	func is_infinite() -> bool:
 		return false
-		
-	
 
 
 class PermutationsIterator extends IteratorOfArray:
@@ -979,3 +993,35 @@ class PermutationsIterator extends IteratorOfArray:
 			else:
 				break
 		return unfinished
+
+class WrapperIterator extends Iterator:
+	
+	var _object
+	var _fully_compatible = false
+		
+	func _init(iterable_object):
+		_object = iterable_object
+		_fully_compatible = _object.has_method(&'terminates') and _object.has_method(&'_is_infinite')
+		
+	func _iter_init(state) -> bool:
+		return _object._iter_init(state)
+	
+	func _iter_next(state) -> bool:
+		return _object._iter_next(state)
+		
+	func _iter_get(state): 
+		return _object._iter_get(state)
+		
+	func terminates() -> bool:
+		if _fully_compatible:
+			return _object.terminates()
+		else:
+			# means we don't know
+			return false
+			
+	func is_infinite() -> bool:
+		if _fully_compatible:
+			return _object._is_infinite()
+		else:
+			# means we don't know
+			return false

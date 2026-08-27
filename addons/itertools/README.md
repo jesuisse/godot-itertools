@@ -32,7 +32,8 @@ The following iterators are implemented:
    sequences into an iterator. You can achieve the same thing with array_slice. If
    you only pass a single argument, iter tries to wrap it into a fitting iterator
    depending on the type of the argument. Currently only strings, arrays and 
-   Vector2/Vector3 objects are supported. 
+   Vector2/Vector3 objects are supported, and all objects which support GDScript's
+   iterator protocol. 
    
    Consider: `iter([22])` builds an iterator with the single element 22. `iter(22)` 
    is an error. `iter([])` builds an empty iterator. `iter()` is an error.
