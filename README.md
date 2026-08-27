@@ -8,6 +8,29 @@ This addon provides a single source file library of custom iterators inspired by
 Python's itertools module. Most of the Python module's functionality is 
 re-implemented in GDScript.
 
+## Usage
+
+Download and install itertools in your addons folder (or anywhere else you like). Then make
+it available to your scripts:
+	
+	# Adjust the path as needed
+	const itertools = preload("res://addons/itertools/itertools.gd")
+
+	var my_array = ["I", "like", "bananas"]
+	for word in itertools.array_rev(my_array):
+		print(word)
+	# prints bananas, like, I
+	
+	var lots_of_even_numbers = itertools.integer_range(0, 50000, 2)
+	var sum = 0
+	for number in lots_of_even_numbers:
+		sum += number
+	print(sum)
+	
+	var permutations = itertools.permutations(itertools.iter("ABC"))
+	print(itertools.list(itertools.map(func (x): "".join(x), permutations))
+	# prints ['ABC', 'ACB', 'BAC', 'BCA', 'CAB', 'CBA']
+
 ## Provided Iterators
 
 The following iterators are implemented:
@@ -93,8 +116,6 @@ The following iterators are implemented:
 
 ## Non-iterator helper functions:
 
-`itertools` also provides a few useful functions which *don't* return iterators:
-
    `list`: Takes an iterator as an argument and returns an array of all the elements the
    iterator yields. Obviously, this only works for finite iterators. Don't use this with
    iterators which yield infinite streams of objects. 
@@ -135,29 +156,6 @@ Consider that the `enumerate` iterator can be constructed using `zip` and
 
 	print(enumerated.terminates())
 	# prints true!
-
-## Usage
-
-Download and install itertools in your addons folder (or anywhere else you like). Then make
-it available to your scripts:
-	
-	# Adjust the path as needed
-	const itertools = preload("res://addons/itertools/itertools.gd")
-
-	var my_array = ["I", "like", "bananas"]
-	for word in itertools.array_rev(my_array):
-		print(word)
-	# prints bananas, like, I
-	
-	var lots_of_even_numbers = itertools.integer_range(0, 50000, 2)
-	var sum = 0
-	for number in lots_of_even_numbers:
-		sum += number
-	print(sum)
-	
-	var permutations = itertools.permutations(itertools.iter("ABC"))
-	print(itertools.list(itertools.map(func (x): "".join(x), permutations))
-	# prints ['ABC', 'ACB', 'BAC', 'BCA', 'CAB', 'CBA']
 	
 ## Important difference to Python's itertools
 
