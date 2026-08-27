@@ -616,14 +616,10 @@ func test_batched_with_missing():
 	assert_eq(result, [[1, 2], [3, 4], [5, 6], [7, null]])
 
 func test_batched_larger_size():
-	var it1 = itertools.cycle(itertools.integer_range(1, 5))
-	var batched = itertools.batched(it1, 4)
-	var i = 0
+	var it1 = itertools.cycle(itertools.integer_range(1, 5), 4)
+	var batched = itertools.batched(it1, 4)	
 	var result = []
-	for group in batched:
-		if i == 4:
-			break
-		i += 1
+	for group in batched:		
 		result.append(group)
 	assert_eq(result, [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]])
 
