@@ -87,9 +87,10 @@ The following iterators are implemented:
 
 `itertools` also provides a few useful functions which *don't* return iterators:
 
-   `list`: Takes an iterator as an argument and returns a list of all the elements the
+   `list`: Takes an iterator as an argument and returns an array of all the elements the
    iterator yields. Obviously, this only works for finite iterators. Don't use this with
-   iterators which yield infinite streams of objects.
+   iterators which yield infinite streams of objects. If you do so, list will **not** 
+   return until it exhausts your memory and crashes your app!
 
    `reduce`: Takes a two-argument function and calls it with the first and second values
 	of the iterator, then calls the function with the result and the next value successively
@@ -103,7 +104,12 @@ it into scripts as follows:
 	# Adjust the path as needed
 	const itertools = preload("res://addons/itertools/itertools.gd")
 
-Then use them like so:
+
+	var my_array = ["I", "like", "bananas"]
+	for word in itertools.array_rev(my_array):
+		print(word)
+	# prints bananas, like, I
+	
 	
 	var lots_of_even_numbers = itertools.integer_range(0, 50000, 2)
 	var sum = 0
@@ -114,6 +120,27 @@ Then use them like so:
 	var no_multiples_of_five = itertools.filter(func (x): return x % 5 != 0, itertools.integer_range(0, 100))
 	for number in no_multiples_of_five:
 		print(number)
+
+## Important difference to Python's itertools
+
+Python iterators do not get reinitialized when they are reused. Once a Python iterator is 
+exhausted, it will stay exhausted. GDScript iterators are reinitialized in every for loop. This
+means that the following behaves differently from what you'd expect in Python:
+	
+	var santa_says = itertools.repeat("ho", 3)
+	var result1 = list(santa_says)
+	var result2 = list(santa_says)
+	
+In Python `result1` would be `['ho', 'ho', 'ho']` and `result2` would be an empty list because the 
+`santa_says` iterator was fully consumed by the first `list` call. GDscript's itertools
+will yield `['ho', 'ho', 'ho']` for both `result1` and `result2` because each for loop in GDScript
+re-initializes the iterator, and itertools respects GDScripts decision instead of trying to 
+imitate Python's behaviour in this.
+
+However, this behaviour is not tested for all iterators yet, and while iterators based on 
+`RangeIterator` and `ArraySliceIterator` behave as advertised, it is possible that you may encounter 
+bugs if you use iterators such as `zip_longest` multiple times. Please open an issue if you 
+encounter such a problem.
 
 ## Unit testing
 

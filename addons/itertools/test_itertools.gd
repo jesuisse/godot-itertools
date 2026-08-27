@@ -73,6 +73,15 @@ func test_integer_range_it_two_arg_reverse():
 		result.append(i)	
 	assert_eq(result, expected)
 
+func test_integer_range_same_iterator_initialized_twice():	
+	var it = itertools.integer_range(10)
+	var result1 = itertools.list(it)
+	var result2 = itertools.list(it)
+	assert_eq(result1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+	assert_eq(result2, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+	# Note: This is NOT what happens in Python! Python would yield an empty list
+	# for result2 because the iterator gets exhausted in the first iteration.		
+
 func test_all_integer_range_forward():
 	var result = []	
 	# we can't really test an infinite iterator, so we just see whether it
@@ -141,6 +150,15 @@ func test_array_rev():
 	for i in it:
 		result.append(i)
 	assert_eq(result, [5, 4, 3, 2, 1])
+
+func test_array_same_iterator_initialized_twice():
+	var it = itertools.array_slice([1, 2, 3, 4, 5], 1, 3)
+	var result1 = itertools.list(it)
+	var result2 = itertools.list(it)
+	assert_eq(result1, [2, 3])
+	assert_eq(result2, [2, 3])
+	# Note: This is NOT what happens in Python! Python would yield an empty list
+	# for result2 because the iterator gets exhausted in the first iteration.		
 
 	
 func test_string_it_simple():
@@ -624,7 +642,6 @@ func test_batched_larger_size():
 	assert_eq(result, [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]])
 
 
-
 func test_iter_multiples():
 	var result = []
 	for word in itertools.iter("one", "two", "three"):
@@ -689,3 +706,6 @@ func test_reduce_simple():
 func test_reduce_simple_with_initializer():
 	var result = itertools.reduce(func (x, y): return x+y, itertools.integer_range(5), 77)
 	assert_eq(result, 87)
+
+
+	

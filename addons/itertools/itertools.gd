@@ -256,7 +256,15 @@ static func reduce(function: Callable, iterator: Iterator, initializer=&'unset')
 
 ## Future base class (instead of AbstractIterator)
 @abstract class Iterator extends AbstractIterator:
-	pass
+	## Returns true if this iterator is finite. If this returns true,
+	## it guarantees that the iterator will exhaust itself sooner or 
+	## later. If it returns false, it might still be finite.
+	@abstract func terminates() -> bool
+
+	# Returns true if this iterator produces an infinite series of elements.
+	# A return value of true is guaranteed to be correct. A return value of
+	# false may be wrong.
+	@abstract func is_infinite() -> bool
 
 ## Iterator which yields integers
 @abstract class IteratorOfInt extends Iterator:
@@ -286,6 +294,12 @@ class ArraySliceIterator extends Iterator:
 		_stop = stop
 		_increment = increment
 		_array = array
+
+	func terminates() -> bool:
+		return true
+	
+	func is_infinite() -> bool:
+		return false
 		
 	func _should_continue(index):
 		if _increment > 0:
@@ -321,6 +335,17 @@ class RangeIterator extends IteratorOfInt:
 		_start = start
 		_stop = stop
 		_increment = increment
+
+	func terminates() -> bool:
+		if _increment > 0:
+			return _stop >= _start
+		elif _increment < 0:
+			return _stop <= _start
+		else: 
+			return false
+	
+	func is_infinite() -> bool:
+		return not terminates()
 		
 	func _should_continue(index):
 		if _increment > 0:
@@ -354,6 +379,12 @@ class InfiniteRangeIterator extends IteratorOfInt:
 		_start = start		
 		_increment = increment
 		assert(increment != 0, "iterator cannot proceed with increment of 0")
+
+	func terminates() -> bool:
+		return false
+		
+	func is_infinite() -> bool:
+		return true
 	
 	func _iter_init(state):
 		state[0] = _start
@@ -380,6 +411,12 @@ class FilterIterator extends Iterator:
 	func _init(predicate, iterator):
 		_it = iterator
 		_predicate = predicate
+
+	func terminates() -> bool:
+		return _it.terminates()
+		
+	func is_infinite() -> bool:
+		return _it.is_infinite()
 
 	func _forward_to_matching_item(state):
 		state = state[0]
