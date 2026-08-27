@@ -758,7 +758,64 @@ class CartesianProductIterator extends IteratorOfArray:
 			else:
 				result[i] = _values[i][state[i]]
 		return result
+
+
+class PermutationsIterator:
+	
 		
+	## [param used] tells us which indices are still
+	## available, [param num] tells us which of those
+	## to take (0 for the first, 1 for the second etc).
+	## p returns the index.
+	func freeidx(num: int, used: Array[bool]) -> int:
+		var p : int = -1
+		for i in range(num+1):
+			p = used.find(false, p+1)
+			if p == -1:
+				assert("This shouldn't happen - no free indices left")
+				break
+		return p
+
+
+	func addone(state) -> bool:
+		var l : int = state.size()
+		var max : int
+		var unfinished : bool = true
+		for i in range(l):
+			max = i+2
+			var x = l-i-1
+			state[x] = state[x] + 1
+			if state[x] >= max:
+				state[x] = 0
+				if i == l-1:
+					unfinished=false
+			else:
+				break
+		return unfinished
+		
+
+	func permutations2(array: Array):
+		var state = []
+		var taken : Array[bool] = []
+		var fin = []
+		var l = array.size()
+		state.resize(l-1)
+		taken.resize(l)
+		state.fill(0)
+		taken.fill(false)
+		fin.resize(l)	
+		var unfinished = true
+		var num = 0
+		while unfinished:
+			taken.fill(false)
+			for i in range(l-1):
+				num = state[i]
+				num = freeidx(num, taken) 
+				fin[i] = array[num]
+				taken[num]= true
+			fin[l-1] = array[taken.find(false)]
+			print("".join(fin), "   ", state)
+			unfinished = addone(state)
 		
 		
 		
