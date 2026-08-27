@@ -38,8 +38,7 @@ static func iter(...args) -> Iterator:
 ## and returns them as a list. This only makes sense for finite iterators!
 static func list(iterator: Iterator) -> Array:
 	var results = []
-	assert(iterator.terminates(), "cannot handle non-terminating iterators")
-	
+		
 	if not iterator.terminates():
 		push_error("list() argument is a non-terminating iterator - aborted")
 		return []
@@ -846,13 +845,14 @@ class CartesianProductIterator extends IteratorOfArray:
 		# build lists of all values by consuming all iterators
 		_values.resize(iterators.size())
 		for i in range(iterators.size()):
-			_values[i] = []
-			assert(iterators[i].terminates(), "Cannot handle non-terminating iterator #%d" % (i+1))
+			_values[i] = []			
 			if iterators[i].terminates():
 				# we protect production code from infinite loops by only doing this for terminating
 				# iterators
 				for value in iterators[i]:
 					_values[i].append(value)
+			else:
+				push_error("Cannot handle non-terminating iterator #%d" % (i+1))
 
 	func _add_one(state) -> bool:
 		state = state[0]
@@ -908,7 +908,6 @@ class PermutationsIterator extends IteratorOfArray:
 	var _perm: Array
 		
 	func _init(iterator: Iterator):
-		assert(iterator.terminates(), "Cannot handle non-terminating iterators")
 		_values = []
 		_taken = []
 		_perm = []
@@ -917,6 +916,8 @@ class PermutationsIterator extends IteratorOfArray:
 			# with iterators guaranteed to terminate
 			for item in iterator:
 				_values.append(item)
+		else:
+			push_error("Cannot handle non-terminating iterators")
 		_taken.resize(_values.size())
 		_perm.resize(_values.size())
 			

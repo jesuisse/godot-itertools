@@ -1,14 +1,14 @@
 
 # Iterator tools for GDScript
 
-This is a small addon which provides a library of custom iterators inspired
-by Python's itertools module.
+GDScript supports custom iterators. This allows you to iterate over any object
+which implements the iterator protocol using a simple for loop.
 
-## Custom Iterators
+This addon provides a single source file library of custom iterators inspired by
+Python's itertools module. Most of the Python module's functionality is 
+re-implemented in GDScript.
 
-GDScript supports custom iterators. This allows you to use for loops to iterate 
-over any object which implements the iterator protocol. This addon provides 
-a set of useful custom iterators for you. 
+## Provided Iterators
 
 The following iterators are implemented:
 	
@@ -39,7 +39,7 @@ The following iterators are implemented:
    
    `filter`: Filters values from another iterator based on a predicate function.
 
-   `compress`: Selects items from a data iterator bassed on the corresponding truth
+   `compress`: Selects items from a data iterator based on the corresponding truth
    values of a selection iterator.
    
    `map`: Maps elements from a set of n iterators using a function of n arguments.

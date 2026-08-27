@@ -16,6 +16,11 @@ func test_list():
 	var l = itertools.list(itertools.integer_range(10))
 	assert_eq(l, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
+func test_list_infinite_iterator():
+	var it = itertools.integers()
+	var x = itertools.list(it)
+	assert_push_error("list() argument is a non-terminating iterator - aborted")
+	
 
 func test_integer_range_it_empty():
 	var it = itertools.integer_range(0, 0)
