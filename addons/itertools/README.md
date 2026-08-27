@@ -8,10 +8,14 @@ This addon provides a single source file library of custom iterators inspired by
 Python's itertools module. Most of the Python module's functionality is 
 re-implemented in GDScript.
 
-## Usage
+## Quickstart
+
+### Installation
 
 Download and install itertools in your addons folder (or anywhere else you like). Then make
 it available to your scripts:
+	
+### Usage
 	
 	# Adjust the path as needed
 	const itertools = preload("res://addons/itertools/itertools.gd")
@@ -30,6 +34,36 @@ it available to your scripts:
 	var permutations = itertools.permutations(itertools.iter("ABC"))
 	print(itertools.list(itertools.map(func (x): "".join(x), permutations))
 	# prints ['ABC', 'ACB', 'BAC', 'BCA', 'CAB', 'CBA']
+
+### Using itertools with your own iterators
+
+All itertools iterators use the itertools.Iterator base class as a type for
+iterator parameters. This will lead to type mismatches when you try to pass
+your own object to an itertools function:
+	
+	var your_iterable = IterableObjectYouWroteYourself.new(...)
+	
+	for x in itertools.permutations(your_iterable):
+		...
+	
+itertools.permutations will complain about a type mismatch with your iterable.
+
+There are two solutions to this problem:
+	
+	1. Make IterableObjectYouWroteYourself inherit from itertools.Iterator
+	2. Wrap it in a call to itertools.iter()
+	
+Solution 2 looks like this:
+	
+	var your_iterable = IterableObjectYouWroteYourself.new(...)
+	
+	for x in itertools.permutations(itertools.iter(your_iterable)):
+		...
+
+Note that this only works if your class also implements the `terminates()`
+and `is_infinite` methods, because `itertools.permutations` will not risk 
+an encounter with an infinite stream of elememnts which might be provided by 
+your object.
 
 ## Provided Iterators
 
@@ -131,7 +165,7 @@ not exhaust themselves depending on the arguments you pass at object constructio
 Examples would be `repeat()` and `cycle()` without a repeat count.
 
 You can check whether an iterator is guaranteed to terminate by calling it's
-`terminate()` method. If it returns true, it guarantees it will terminate
+`terminates()` method. If it returns true, it guarantees it will terminate
 eventually. A false value is *not* a guarantee that it will produce an infinite
 number of elements, however.
 
