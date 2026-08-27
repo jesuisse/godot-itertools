@@ -89,6 +89,18 @@ The following iterators are implemented:
    without element repetitions.
    
    Given 1,2,3, returns [1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2] and [3,2,1].
+
+## Non-iterator helper functions:
+
+`itertools` also provides a few useful functions which *don't* return iterators:
+
+   `list`: Takes an iterator as an argument and returns an array of all the elements the
+   iterator yields. Obviously, this only works for finite iterators. Don't use this with
+   iterators which yield infinite streams of objects. 
+
+   `reduce`: Takes a two-argument function and calls it with the first and second values
+	of the iterator, then calls the function with the result and the next value successively
+	until all the elements are processed.
    
 ## Terminating and infinite iterators
 	
@@ -110,32 +122,29 @@ Some iterators and functions, such as `list`, `product` and `permutations`,
 will either stop the program (in debug mode) or produce incomplete results
 when you try to call them with non-terminating iterators.
 
-## Non-iterator helper functions:
+In case you are wondering why infinite iterators could possibly be useful:
+Consider that the `enumerate` iterator can be constructed using `zip` and
+`integers` like so:
+	
+    var very_long_array = [...]
+    var enumerated = itertools.zip(itertools.integers(), 
+                                   itertools.array_slice(very_long_array))
 
-`itertools` also provides a few useful functions which *don't* return iterators:
-
-   `list`: Takes an iterator as an argument and returns an array of all the elements the
-   iterator yields. Obviously, this only works for finite iterators. Don't use this with
-   iterators which yield infinite streams of objects. 
-
-   `reduce`: Takes a two-argument function and calls it with the first and second values
-	of the iterator, then calls the function with the result and the next value successively
-	until all the elements are processed.
+    print(enumerated.terminates())
+	# prints true!
 
 ## Usage
 
-Download and install itertools in your addons folder (or anywhere else you like). Then load
-it into scripts as follows:
+Download and install itertools in your addons folder (or anywhere else you like). Then make
+it available to your scripts:
 	
 	# Adjust the path as needed
 	const itertools = preload("res://addons/itertools/itertools.gd")
-
 
 	var my_array = ["I", "like", "bananas"]
 	for word in itertools.array_rev(my_array):
 		print(word)
 	# prints bananas, like, I
-	
 	
 	var lots_of_even_numbers = itertools.integer_range(0, 50000, 2)
 	var sum = 0
@@ -143,10 +152,10 @@ it into scripts as follows:
 		sum += number
 	print(sum)
 	
-	var no_multiples_of_five = itertools.filter(func (x): return x % 5 != 0, itertools.integer_range(0, 100))
-	for number in no_multiples_of_five:
-		print(number)
-
+	var permutations = itertools.map(func (x): "".join(x), itertools.permutations(itertools.iter("ABC")))
+	print(itertools.list(permutations))
+	# prints ['ABC', 'ACB', 'BAC', 'BCA', 'CAB', 'CBA']
+	
 ## Important difference to Python's itertools
 
 Python iterators do not get reinitialized when they are reused. Once a Python iterator is 
