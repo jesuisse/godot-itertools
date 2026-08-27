@@ -110,6 +110,18 @@ Some iterators and functions, such as `list`, `product` and `permutations`,
 will either stop the program (in debug mode) or produce incomplete results
 when you try to call them with non-terminating iterators.
 
+In case you are wondering why infinite iterators could possibly be useful:
+Consider that the `enumerate` iterator can be constructed using `zip` and
+`integers` like so:
+	
+    var very_long_array = [...]
+    var enumerated = itertools.zip(itertools.integers(), 
+                                   itertools.array_slice(very_long_array))
+
+    print(enumerated.terminates())
+	# prints true!
+
+
 ## Non-iterator helper functions:
 
 `itertools` also provides a few useful functions which *don't* return iterators:
