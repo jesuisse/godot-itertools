@@ -119,18 +119,20 @@ infinite stream of elements. A false return value is *not* a guarantee that the
 iterator will terminate.
 
 Some iterators and functions, such as `list`, `product` and `permutations`, 
-will either stop the program (in debug mode) or produce incomplete results
-when you try to call them with non-terminating iterators.
+will log an error and produce incomplete results when you try to call them with 
+non-terminating iterators. That's arguably better than the alternative, which 
+would be for your application to hang in a quasi-infinite loop until your 
+computer ran out of memory.
 
 In case you are wondering why infinite iterators could possibly be useful:
 Consider that the `enumerate` iterator can be constructed using `zip` and
 `integers` like so:
 	
-    var very_long_array = [...]
-    var enumerated = itertools.zip(itertools.integers(), 
-                                   itertools.array_slice(very_long_array))
+	var very_long_array = [...]
+	var enumerated = itertools.zip(itertools.integers(), 
+								   itertools.array_slice(very_long_array))
 
-    print(enumerated.terminates())
+	print(enumerated.terminates())
 	# prints true!
 
 ## Usage
@@ -152,8 +154,8 @@ it available to your scripts:
 		sum += number
 	print(sum)
 	
-	var permutations = itertools.map(func (x): "".join(x), itertools.permutations(itertools.iter("ABC")))
-	print(itertools.list(permutations))
+	var permutations = itertools.permutations(itertools.iter("ABC"))
+	print(itertools.list(itertools.map(func (x): "".join(x), permutations))
 	# prints ['ABC', 'ACB', 'BAC', 'BCA', 'CAB', 'CBA']
 	
 ## Important difference to Python's itertools
