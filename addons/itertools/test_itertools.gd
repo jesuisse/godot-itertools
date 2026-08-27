@@ -641,6 +641,24 @@ func test_batched_larger_size():
 		result.append(group)
 	assert_eq(result, [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]])
 
+func test_permutations_empty():
+	var it1 = itertools.integer_range(0)
+	var permutations = itertools.permutations(it1)
+	var result = itertools.list(permutations)
+	assert_true(result.is_empty())
+
+func test_permutations_single():
+	var it1 = itertools.integer_range(1)
+	var permutations = itertools.permutations(it1)
+	var result = itertools.list(permutations)
+	assert_eq(result, [[0]])
+
+func test_permutations_pair():
+	var it1 = itertools.string_slice("AB")
+	var permutations = itertools.permutations(it1)
+	var result = itertools.list(permutations)
+	assert_eq(result, [['A', 'B'], ['B', 'A']])
+
 
 func test_iter_multiples():
 	var result = []

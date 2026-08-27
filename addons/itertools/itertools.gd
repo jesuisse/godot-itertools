@@ -204,8 +204,12 @@ static func compress(data: Iterator, selectors: Iterator) -> Iterator:
 ## Implementation note: Each iterator is consumed at initialization and the 
 ## values each iterator yields are stored in memory. Therefore, this iterator 
 ## cannot deal with iterators which yield an infinite stream of elements.
-static func product(...iterators) -> Iterator:
+static func product(...iterators) -> IteratorOfArray:
 	return CartesianProductIterator.new(iterators)
+
+static func permutations(iterator) -> IteratorOfArray:
+	return PermutationsIterator.new(iterator)
+
 
 ## Returns an iterator returns the elements of [param iterator] batched into
 ## arrays of [param size] elements. If the last batch cannot be filled, 
@@ -795,7 +799,101 @@ class CartesianProductIterator extends IteratorOfArray:
 			else:
 				result[i] = _values[i][state[i]]
 		return result
+
+
+class PermutationsIterator extends IteratorOfArray:
+	
+	var _values : Array
+	var _taken : Array[bool]
+	var _perm: Array
 		
+	func _init(iterator: Iterator):
+		_values = []
+		_taken = []
+		_perm = []
+		for item in iterator:
+			_values.append(item)
+		_taken.resize(_values.size())
+		_perm.resize(_values.size())
+		
+	func _iter_init(superstate) -> bool:
+		var state : Array[int]= []
+		if _values.is_empty():
+			return false
+		state.resize(_values.size()-1)
+		state.fill(0)
+		superstate[0] = state
+		return not _values.is_empty()
+	
+	func _iter_next(superstate) -> bool:
+		var state = superstate[0]
+		return _addone(state)
+		
+	func _iter_get(state) -> Array:
+		var l = _values.size()
+		_taken.fill(false)
+		var num	
+		for i in range(l-1):
+			num = _freeidx(state[i], _taken) 
+			_perm[i] = _values[num]
+			_taken[num]= true
+		_perm[l-1] = _values[_taken.find(false)]
+		return _perm
+	
+		
+	## [param used] tells us which indices are still
+	## available, [param num] tells us which of those
+	## to take (0 for the first, 1 for the second etc).
+	## p returns the index.
+	func _freeidx(num: int, used: Array[bool]) -> int:
+		var p : int = -1
+		for i in range(num+1):
+			p = used.find(false, p+1)
+			if p == -1:
+				assert("This shouldn't happen - no free indices left")
+				break
+		return p
+
+
+	func _addone(state) -> bool:
+		var l : int = state.size()
+		var max : int
+		var unfinished : bool = true
+		for i in range(l):
+			max = i+2
+			var x = l-i-1
+			state[x] = state[x] + 1
+			if state[x] >= max:
+				state[x] = 0
+				if i == l-1:
+					unfinished=false
+			else:
+				break
+		return unfinished
+		
+
+	func permutations2(array: Array):
+		var state = []
+		var taken : Array[bool] = []
+		var fin = []
+		var l = array.size()
+		state.resize(l-1)
+		taken.resize(l)
+		state.fill(0)
+		taken.fill(false)
+		fin.resize(l)	
+		var unfinished = true
+		var num = 0
+		while unfinished:
+			taken.fill(false)
+			for i in range(l-1):
+				num = state[i]
+				num = _freeidx(num, taken) 
+				fin[i] = array[num]
+				taken[num]= true
+			fin[l-1] = array[taken.find(false)]
+			print("".join(fin), "   ", state)
+			unfinished = _addone(state)
 		
 		
 		
