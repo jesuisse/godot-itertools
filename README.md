@@ -44,10 +44,10 @@ The following iterators are implemented:
    
    `map`: Maps elements from a set of n iterators using a function of n arguments.
    
-    `batched`: Returns the elements of an iterator batched into arrays of a given number of elements.
-    If the last batch cannot be filled, a fill value will be used. So if you have an iterator 
-	returning the sequence ABCDEF, batched with a size of 2 will return ['A', 'B'], ['C', 'D'], 
-	['E', 'F'].
+   `batched`: Returns the elements of an iterator batched into arrays of a given number of elements.
+   If the last batch cannot be filled, a fill value will be used. So if you have an iterator 
+   returning the sequence ABCDEF, batched with a size of 2 will return ['A', 'B'], ['C', 'D'], 
+   ['E', 'F'].
 
    `zip`: Iterates over elements from an arbitrary number of iterators and returns them
    one of each in an array. If you have two sequences ABC and 123, you get ['A', 1], ['B', 2]
