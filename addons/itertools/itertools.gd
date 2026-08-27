@@ -5,7 +5,7 @@
 ##
 ## Requires Godot >= 4.5 for variadic argument list support.
 
-static func _wrap_in_iterator(data):
+static func _wrap_in_iterator(data) -> Iterator:
 	if data is Array:
 		return array_slice(data)
 	elif data is String:
@@ -25,7 +25,7 @@ static func _wrap_in_iterator(data):
 ## iter(22, 23) builds an iterator with the two elements 22 and 23.[br] 
 ## iter([22]) builds an iterator with the single element 22. `iter(22)` is an error. [br]
 ## iter([]) builds an empty iterator. `iter()` is an error.
-static func iter(...args):
+static func iter(...args) -> Iterator:
 	if len(args) == 0:
 		push_error("cannot call iter() without arguments!")
 		return null
@@ -36,7 +36,7 @@ static func iter(...args):
 
 ## Convenience function which generates all elements of the provided [param iterator]
 ## and returns them as a list. This only makes sense for finite iterators!
-static func list(iterator: AbstractIterator) -> Array:
+static func list(iterator: Iterator) -> Array:
 	var results = []
 	for x in iterator:
 		results.append(x)
@@ -46,19 +46,19 @@ static func list(iterator: AbstractIterator) -> Array:
 ## [param start] up to, but excluding [param stop]. If you do not specify
 ## stop, all elements of the array will be iterated over starting
 ## at start.
-static func array_slice(array: Array, start: int = 0, stop: int = -1, increment: int = 0) -> AbstractIterator:
+static func array_slice(array: Array, start: int = 0, stop: int = -1, increment: int = 0) -> Iterator:
 	return ArraySliceIterator.new(array, start, stop, increment)
 
 ## Returns an iterator for the [param array] but walks the array
 ## backwards.
-static func array_rev(array: Array) -> AbstractIterator:
+static func array_rev(array: Array) -> Iterator:
 	var l = -1 if array.is_empty() else array.size()-1
 	return ArraySliceIterator.new(array, l, -1, -1)
 
 ## Convenience function that returns an iterator which iterates over
 ## a slice of a string. See array_slice for details, as this simply
 ## wraps array_slice around a string.
-static func string_slice(str: String, start: int = 0, stop: int = -1) -> AbstractIterator:
+static func string_slice(str: String, start: int = 0, stop: int = -1) -> Iterator:
 	var array = []
 	array.resize(len(str))
 	for i in len(str):	
@@ -75,7 +75,7 @@ static func string_slice(str: String, start: int = 0, stop: int = -1) -> Abstrac
 ## a is larger than b, the range will count down from a up to, but
 ## not including b. If you provide three arguments, the last one
 ## defines the step size.
-static func integer_range(first: int, ...args) -> AbstractIterator:
+static func integer_range(first: int, ...args) -> IteratorOfInt:
 	var start
 	var stop
 	var increment
@@ -101,7 +101,7 @@ static func integer_range(first: int, ...args) -> AbstractIterator:
 	return RangeIterator.new(start, stop, increment)
 
 ## Returns all integers starting with [param start] at an step of [param increment]
-static func integers(start: int=0, increment: int = 1) -> AbstractIterator:
+static func integers(start: int=0, increment: int = 1) -> IteratorOfInt:
 	# We provide a stop value that can't be reached, which means the iterator
 	# will never exhaust itself.
 	if increment == 0:
@@ -112,7 +112,7 @@ static func integers(start: int=0, increment: int = 1) -> AbstractIterator:
 ## Enumerates the elements of the iterators, yielding [0, value 0], [1, value 1] etc. Works with
 ## multiple iterators and stops as soon as the first iterator is exhausted. [br]
 ## This is a convenience function which wraps zip.
-static func enumerate(...iterators) -> AbstractIterator:
+static func enumerate(...iterators) -> IteratorOfArray:
 	var args = [integers()]
 	args.append_array(iterators)
 	return zip.callv(args)
@@ -121,7 +121,7 @@ static func enumerate(...iterators) -> AbstractIterator:
 ## [start, value 0], [start+1, value 1] etc. Works with multiple iterators and stops
 ## as soon as the first iterator is exhausted. [br]
 ## This is a convenience function which wraps zip.
-static func enumerate_from(start: int, ...iterators) -> AbstractIterator:
+static func enumerate_from(start: int, ...iterators) -> IteratorOfArray:
 	var args = [integers(start)]
 	args.append_array(iterators)
 	return zip.callv(args)
@@ -130,7 +130,7 @@ static func enumerate_from(start: int, ...iterators) -> AbstractIterator:
 ## [param predicate] callable.
 ##
 ## ex: filter(range(5), func (x): x<2) will yield 0,1
-static func filter(predicate: Callable, iterator: AbstractIterator) -> AbstractIterator:
+static func filter(predicate: Callable, iterator: Iterator) -> Iterator:
 	return FilterIterator.new(predicate, iterator)
 
 ## Returns an iterator which maps all elements using
@@ -140,43 +140,59 @@ static func filter(predicate: Callable, iterator: AbstractIterator) -> AbstractI
 ## a single mapped result. 
 ## If the iterators yield an unequal number of elements,
 ## map stops when the first iterator is exhausted.
-static func map(function: Callable, ...iterators) -> AbstractIterator:
+static func map(function: Callable, ...iterators) -> Iterator:
 	return MapIterator.new(function, iterators)
 
 ## Returns an iterator which will yield an array of values, 
 ## each value obtained by kicking one of the [param iterators].
 ## If the iterators don't supply the same amount of values, the
-## zip iterator gets exhausted with the shortest iterator. 
-static func zip(...iterators) -> AbstractIterator:
+## zip iterator will return the shortest sequence. 
+static func zip(...iterators) -> IteratorOfArray:
+	if OS.is_debug_build():
+		for item in iterators:
+			assert(item is Iterator, "all arguments to zip() must be iterators!")
 	return ZipIterator.new(iterators)
+
+## Returns an iterator which will yield an array of values,
+## each value obtained from one of the argument iterators. 
+## If the iterators don't supply the same amount of vlues, the
+## zip_longest iterator will return the longest sequence, filling
+## the missing values with a fill value that you can optionally pass
+## as the last parameter. The fill value cannot be an Iterator.
+static func zip_longest(fill_value, ...iterators) -> IteratorOfArray:
+	if OS.is_debug_build():
+		for item in iterators:
+			assert(item is Iterator, "all arguments to zip_longest() must be iterators except the last, which can designate a fill value!")
+	return ZipLongestIterator.new(fill_value, iterators)
+
 
 ## Returns an iterator which chains together the iterators passed
 ## as arguments. These iterators will be iterated over in sequence,
 ## starting with the first.
-static func chain(...iterators) -> AbstractIterator:
+static func chain(...iterators) -> Iterator:
 	# we do the type check only if we're running in the editor
-	if Engine.is_editor_hint():
+	if OS.is_debug_build():
 		for item in iterators:
-			assert(item is AbstractIterator, "all arguments to chain(...) must be iterators!")
+			assert(item is Iterator, "all arguments to chain(...) must be iterators!")
 	return ChainIterator.new(iterators)
 
 ## Repeats [param value] exactly [param count] number
 ## of times. If count is -1 or left out, this will repeat 
 ## the value indefinitely, so be careful as this will yield
 ## an infinite stream of the value.
-static func repeat(value: Variant, count : int=-1) -> AbstractIterator:
+static func repeat(value: Variant, count : int=-1) -> Iterator:
 	return RepeatIterator.new(value, count)
 
 ## This cycles through another [param iterator] exactly [param count] times,
 ## or indefinitely if count is -1 or unspecified. Note that values are not
 ## cached and the provided iterator is expected to be restartable. 
-static func cycle(iterator: AbstractIterator, count: int=-1) -> AbstractIterator:
+static func cycle(iterator: Iterator, count: int=-1) -> Iterator:
 	return CycleIterator.new(iterator, count)
 
 ## Returns an iterator which yields only the items from the [param data] iterator
 ## for which there is a corresponding true value in the [param selectors] iterator,
 ## e.g. data[0] if selectors[0], data[1] if selectors[1] etc.
-static func compress(data: AbstractIterator, selectors: AbstractIterator) -> AbstractIterator:
+static func compress(data: Iterator, selectors: Iterator) -> Iterator:
 	return CompressIterator.new(data, selectors)
 	
 ## Returns an iterator which returns the cartesian product of all the elements in 
@@ -188,8 +204,15 @@ static func compress(data: AbstractIterator, selectors: AbstractIterator) -> Abs
 ## Implementation note: Each iterator is consumed at initialization and the 
 ## values each iterator yields are stored in memory. Therefore, this iterator 
 ## cannot deal with iterators which yield an infinite stream of elements.
-static func product(...iterators) -> AbstractIterator:
+static func product(...iterators) -> Iterator:
 	return CartesianProductIterator.new(iterators)
+
+## Returns an iterator returns the elements of [param iterator] batched into
+## arrays of [param size] elements. If the last batch cannot be filled, 
+## [param fill_value] will be used.
+## Example: ABCDEF with size 2 returns ['A', 'B'], ['C', 'D'], ['E', 'F']
+static func batched(iterator: Iterator, size: int, fill_value=null) -> IteratorOfArray:
+	return BatchIterator.new(iterator, size, fill_value)
 
 ## Returns a value by passing the first two elements of [param iterator] to [param function]
 ## and then calling the function again with the result and the third element, etc, until the
@@ -198,7 +221,7 @@ static func product(...iterators) -> AbstractIterator:
 ## not provide an initializer and the iterator is empty, this is an error. If you do not provide
 ## an initializer and the iterator has exactly one element, the element is returned as the
 ## result of reduce.
-static func reduce(function: Callable, iterator: AbstractIterator, initializer=&'unset') -> Variant:
+static func reduce(function: Callable, iterator: Iterator, initializer=&'unset') -> Variant:
 	var state = [null]
 	var remaining = iterator._iter_init(state)
 	if not remaining:
@@ -221,15 +244,31 @@ static func reduce(function: Callable, iterator: AbstractIterator, initializer=&
 
 
 ## This simply defines the custom iterator protocol used by GDScript to make
-## the function signatures of the iterator functions explicit.
+## the function signatures of the iterator functions explicit. This may help
+## users of itertools understand better when they can expect a return value
+## to be an iterator, and which iterators return which types. Unfortunately,
+## GDScript does not let us provide better types.
+## DEPRECATED: Use Iterator as a base class instead!
 @abstract class AbstractIterator:
 	@abstract func _iter_init(state) -> bool
 	@abstract func _iter_next(state) -> bool
 	@abstract func _iter_get(state) -> Variant
 
+## Future base class (instead of AbstractIterator)
+@abstract class Iterator extends AbstractIterator:
+	pass
+
+## Iterator which yields integers
+@abstract class IteratorOfInt extends Iterator:
+	pass
+
+## Iterator which yields Arrays
+@abstract class IteratorOfArray extends Iterator:
+	pass
+
 
 ## An iterator which will iterate over a slice of an array
-class ArraySliceIterator extends AbstractIterator:
+class ArraySliceIterator extends Iterator:
 	
 	var _start: int
 	var _stop: int
@@ -273,7 +312,7 @@ class ArraySliceIterator extends AbstractIterator:
 
 
 ## This iterator simulates range(start, stop, increment)
-class RangeIterator extends AbstractIterator:
+class RangeIterator extends IteratorOfInt:
 	var _start: int
 	var _stop: int
 	var _increment: int
@@ -300,14 +339,14 @@ class RangeIterator extends AbstractIterator:
 		state[0] += _increment
 		return _should_continue(state[0])
 	
-	func _iter_get(index):
+	func _iter_get(index) -> int:
 		return index
 		
 	func _to_string() -> String:
 		return "<RangeIterator %d %d %d>" % [_start, _stop, _increment]
 			
 
-class InfiniteRangeIterator extends AbstractIterator:
+class InfiniteRangeIterator extends IteratorOfInt:
 	var _start: int	
 	var _increment: int
 
@@ -333,7 +372,7 @@ class InfiniteRangeIterator extends AbstractIterator:
 
 ## An iterator which will kick another iterator and only return
 ## values for which a given predicate function returns true
-class FilterIterator extends AbstractIterator:
+class FilterIterator extends Iterator:
 	
 	var _predicate: Callable
 	var _it
@@ -372,7 +411,7 @@ class FilterIterator extends AbstractIterator:
 		
 
 # Applies a function to every iterable
-class MapIterator extends AbstractIterator:
+class MapIterator extends Iterator:
 	var _its: Array
 	var _func: Callable
 	
@@ -409,7 +448,7 @@ class MapIterator extends AbstractIterator:
 		return _func.callv(args)
 
 
-class ZipIterator extends AbstractIterator:	
+class ZipIterator extends IteratorOfArray:	
 	var _its: Array
 	
 	func _init(iterators):
@@ -443,7 +482,90 @@ class ZipIterator extends AbstractIterator:
 			zipped[i] = _its[i]._iter_get(states[i][0])
 		return zipped
 
-class ChainIterator extends AbstractIterator:	
+class ZipLongestIterator extends IteratorOfArray:
+	var _its: Array
+	var _exhausted: Array[bool]
+	var _fill_value 
+	
+	func _init(fill_value, iterators):
+		_its = iterators
+		_fill_value = fill_value
+		_exhausted = []
+		_exhausted.resize(iterators.size())
+
+	func _iter_init(args) -> bool:
+		# Initialize state for each sub-iterator
+		args[0] = []
+		var l = _its.size()
+		args[0].resize(l)
+		for i in range(l):
+			args[0][i] = [null]
+		
+		var remaining : bool = false
+		for i in range(l):
+			_exhausted[i] = not _its[i]._iter_init(args[0][i])
+			remaining = remaining or not _exhausted[i]
+		return remaining
+
+	func _iter_next(args) -> bool:
+		var remaining : bool = false
+		var l = _its.size()
+		for i in range(l):
+			if not _exhausted[i]:
+				_exhausted[i] = not _its[i]._iter_next(args[0][i])
+			remaining = remaining or not _exhausted[i]
+		return remaining
+		
+	func _iter_get(states) -> Array:
+		var l = _its.size()
+		var zipped = []
+		zipped.resize(l)
+		for i in range(l):
+			if _exhausted[i]:
+				zipped[i] = _fill_value
+			else:
+				zipped[i] = _its[i]._iter_get(states[i][0])
+		return zipped
+
+
+class BatchIterator extends IteratorOfArray:
+	var _it: Iterator
+	var _fill_value
+	var _batch_size
+	
+	func _init(iterator: Iterator, size: int, fill_value=null):
+		assert(size > 0, "Can't create batches smaller than 1")
+		_it = iterator
+		_fill_value = fill_value
+		_batch_size = size
+
+	func _iter_init(args) -> bool:
+		# Initialize state for each sub-iterator
+		args[0] = [[null], false]
+		args[0][1] = _it._iter_init(args[0][0])
+		return args[0][1]
+		
+	func _iter_next(args) -> bool:
+		if args[0][1]:
+			args[0][1] = _it._iter_next(args[0][0])
+		return args[0][1]
+					
+	func _iter_get(state) -> Array:
+		var zipped = []
+		zipped.resize(_batch_size)
+		var exhausted = false
+		for i in range(_batch_size):
+			if state[1]:
+				zipped[i] = _it._iter_get(state[0][0])
+				if i < _batch_size -1:
+					state[1] = _it._iter_next(state[0])
+			else:
+				zipped[i] = _fill_value
+		return zipped
+
+
+
+class ChainIterator extends Iterator:	
 	var _its : Array
 	
 	func _init(iterators):
@@ -487,7 +609,7 @@ class ChainIterator extends AbstractIterator:
 		return _its[args[1]]._iter_get(args[0][0])
 
 
-class CycleIterator extends AbstractIterator:
+class CycleIterator extends Iterator:
 	var _it
 	var _count
 	
@@ -520,7 +642,7 @@ class CycleIterator extends AbstractIterator:
 		return _it._iter_get(state[0][0])
 
 
-class RepeatIterator extends AbstractIterator:
+class RepeatIterator extends Iterator:
 	var _value
 	var _count
 	
@@ -543,12 +665,12 @@ class RepeatIterator extends AbstractIterator:
 		return _value
 
 
-class CompressIterator extends AbstractIterator:
+class CompressIterator extends Iterator:
 	
-	var _data : AbstractIterator
-	var _selector: AbstractIterator
+	var _data : Iterator
+	var _selector: Iterator
 	
-	func _init(data: AbstractIterator, selectors: AbstractIterator):
+	func _init(data: Iterator, selectors: Iterator):
 		_data = data
 		_selector = selectors
 
@@ -587,7 +709,7 @@ class CompressIterator extends AbstractIterator:
 		return _data._iter_get(state[0][0])
 		
 
-class CartesianProductIterator extends AbstractIterator:
+class CartesianProductIterator extends IteratorOfArray:
 	
 	var _values: Array = []
 	

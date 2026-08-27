@@ -44,10 +44,21 @@ The following iterators are implemented:
    
    `map`: Maps elements from a set of n iterators using a function of n arguments.
    
+    `batched`: Returns the elements of an iterator batched into arrays of a given number of elements.
+    If the last batch cannot be filled, a fill value will be used. So if you have an iterator 
+	returning the sequence ABCDEF, batched with a size of 2 will return ['A', 'B'], ['C', 'D'], 
+	['E', 'F'].
+
    `zip`: Iterates over elements from an arbitrary number of iterators and returns them
    one of each in an array. If you have two sequences ABC and 123, you get ['A', 1], ['B', 2]
    and ['C', 3]. If the iterators don't contain the same amount of elements each, the
    shortest one exhausts the iterator, so with ABC and 12, you only get ['A', 1] and ['B', 2].
+
+   `zip_longest`: Iterates over elements from an arbitrary number of iterators and returns them
+   one of each in an array. If you have two sequences ABC and 123, you get ['A', 1], ['B', 2]
+   and ['C', 3]. If the iterators don't contain the same amount of elements each, the
+   longest one exhausts the iterator, so with ABC and 12, you get ['A', 1], ['B', 2] and ['A', null].
+   You must specify the fill value to use as the first argument to zip_longest.
 
    `enumerate`: Convenience function to add an integer count to the front of the arrays zip 
    returns. The count starts at 0.

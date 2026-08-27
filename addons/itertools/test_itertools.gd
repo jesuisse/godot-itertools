@@ -6,6 +6,17 @@ extends GutTest
 
 const itertools = preload("itertools.gd")
 
+func test_list_empty():
+	var result = []
+	var l = itertools.list(itertools.integer_range(0))
+	assert_eq(l, [])
+
+func test_list():
+	var result = []
+	var l = itertools.list(itertools.integer_range(10))
+	assert_eq(l, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+
 func test_integer_range_it_empty():
 	var it = itertools.integer_range(0, 0)
 	var expected = []
@@ -197,6 +208,58 @@ func test_zip_it_triple():
 		result.append(triple)
 	assert_eq(result, [[0, 'A', 3], [1, 'B', 2], [2, 'C', 1]])
 
+func test_zip_longest_all_empty():
+	var it1 = itertools.integer_range(0)
+	var it2 = itertools.array_slice([])
+	var it3 = itertools.integer_range(0)
+	var zip = itertools.zip_longest(null, it1, it2, it3)
+	var result = []
+	for triple in zip:
+		result.append(triple)
+	assert_eq(result, [])
+
+func test_zip_longest_all_the_same():
+	var it1 = itertools.integer_range(3)
+	var it2 = itertools.array_slice(['A', 'B', 'C'])
+	var it3 = itertools.integer_range(3, 0, -1)
+	var zip = itertools.zip_longest(null, it1, it2, it3)
+	var result = []
+	for triple in zip:
+		result.append(triple)
+	assert_eq(result, [[0, 'A', 3], [1, 'B', 2], [2, 'C', 1]])
+
+func test_zip_longest_first_is_longest():
+	var it1 = itertools.integer_range(3)
+	var it2 = itertools.array_slice(['A', 'B'])
+	var it3 = itertools.integer_range(1)
+	var zip = itertools.zip_longest(null, it1, it2, it3)
+	var result = []
+	for triple in zip:
+		result.append(triple)
+	assert_eq(result, [[0, 'A', 0], [1, 'B', null], [2, null, null]])
+	
+func test_zip_longest_last_is_longest():
+	var it1 = itertools.integer_range(1)
+	var it2 = itertools.array_slice(['A', 'B'])
+	var it3 = itertools.integer_range(3)
+	var zip = itertools.zip_longest(null, it1, it2, it3)
+	var result = []
+	for triple in zip:
+		result.append(triple)
+	assert_eq(result, [[0, 'A', 0], [null, 'B', 1], [null, null, 2]])
+
+
+func test_zip_longest_other_fill_value():
+	var it1 = itertools.integer_range(1)
+	var it2 = itertools.array_slice(['A', 'B'])
+	var it3 = itertools.integer_range(3)
+	var zip = itertools.zip_longest("test", it1, it2, it3)
+	var result = []
+	for triple in zip:
+		result.append(triple)
+	assert_eq(result, [[0, 'A', 0], ['test', 'B', 1], ['test', 'test', 2]])
+
+
 func test_enumerate():
 	var it1 = itertools.string_slice("ABCDEFG")
 	var it2 = itertools.string_slice("abcd")
@@ -238,15 +301,6 @@ func test_chain_it_simple():
 		result.append(item)
 	assert_eq(result, [0, 1, 2, 4, 5, 6, 7])
 
-func test_chain_it_second_empty():
-	var it1 = itertools.integer_range(3)
-	var it2 = itertools.integer_range(0)	
-	var chain = itertools.chain(it1, it2)
-	var result = []
-	for item in chain:
-		result.append(item)
-	assert_eq(result, [0, 1, 2])
-
 func test_chain_it_first_empty():
 	var it1 = itertools.integer_range(0)
 	var it2 = itertools.integer_range(5, 7)
@@ -256,6 +310,25 @@ func test_chain_it_first_empty():
 		result.append(item)
 	assert_eq(result, [5, 6])
 
+func test_chain_it_first_few_empty():
+	var it1 = itertools.integer_range(0)
+	var it2 = itertools.integer_range(0)
+	var it3 = itertools.integer_range(5, 7)
+	var chain = itertools.chain(it1, it2, it3)
+	var result = []
+	for item in chain:
+		result.append(item)
+	assert_eq(result, [5, 6])
+
+
+func test_chain_it_second_empty():
+	var it1 = itertools.integer_range(3)
+	var it2 = itertools.integer_range(0)	
+	var chain = itertools.chain(it1, it2)
+	var result = []
+	for item in chain:
+		result.append(item)
+	assert_eq(result, [0, 1, 2])
 
 func test_chain_it_successors_empty():
 	var it1 = itertools.integer_range(3)
@@ -524,6 +597,38 @@ func test_product_with_single_value():
 	assert_eq(result, [[0, 0, 0], [0, 0, 1], [1, 0, 0], [1, 0, 1], [2, 0, 0], [2, 0, 1]])
 
 
+func test_batched_empty():
+	var it1 = itertools.integer_range(0)
+	var pairwise = itertools.batched(it1, 2)
+	var result = itertools.list(pairwise)
+	assert_eq(result, [])
+
+func test_batched_even():
+	var it1 = itertools.integer_range(1, 7)
+	var pairwise = itertools.batched(it1, 2)
+	var result = itertools.list(pairwise)
+	assert_eq(result, [[1, 2], [3, 4], [5, 6]])
+
+func test_batched_with_missing():
+	var it1 = itertools.integer_range(1, 8)
+	var pairwise = itertools.batched(it1, 2)
+	var result = itertools.list(pairwise)
+	assert_eq(result, [[1, 2], [3, 4], [5, 6], [7, null]])
+
+func test_batched_larger_size():
+	var it1 = itertools.cycle(itertools.integer_range(1, 5))
+	var batched = itertools.batched(it1, 4)
+	var i = 0
+	var result = []
+	for group in batched:
+		if i == 4:
+			break
+		i += 1
+		result.append(group)
+	assert_eq(result, [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]])
+
+
+
 func test_iter_multiples():
 	var result = []
 	for word in itertools.iter("one", "two", "three"):
@@ -561,12 +666,7 @@ func test_iter_single_vector3():
 	for c in itertools.iter(Vector3(2.5, 1.5, 8)):
 		result.append(c)
 	assert_eq(result, [2.5, 1.5, 8.0])
-	
 
-func test_list():
-	var result = []
-	var l = itertools.list(itertools.integer_range(10))
-	assert_eq(l, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 	
 func test_reduce_empty_error():
 	var result = itertools.reduce(func (x, y): return x+y, itertools.integer_range(0))
