@@ -15,10 +15,10 @@ re-implemented in GDScript.
 Download and install itertools in your addons folder (or anywhere else you like). Then make
 it available to your scripts:
 	
-### Usage
-	
 	# Adjust the path as needed
 	const itertools = preload("res://addons/itertools/itertools.gd")
+	
+### Usage
 
 	var my_array = ["I", "like", "bananas"]
 	for word in itertools.array_rev(my_array):
