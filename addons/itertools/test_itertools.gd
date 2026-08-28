@@ -691,6 +691,15 @@ func test_permutations_quad():
 					   'CABD', 'CADB', 'CBAD', 'CBDA', 'CDAB', 'CDBA',
 					   'DABC', 'DACB', 'DBAC', 'DBCA', 'DCAB', 'DCBA'])
 	
+func test_permutations_size_2_triple():
+	var it1 = itertools.string_slice("ABCD")
+	var permutations = itertools.permutations(it1, 2)
+	var result = itertools.list(itertools.map(func (x): return "".join(x), permutations))
+	assert_eq(result, ['AB', 'AC', 'AD',
+					   'BA', 'BC', 'BD',
+					   'CA', 'CB', 'CD',
+					   'DA', 'DB', 'DC'])
+	
 
 
 
@@ -782,7 +791,7 @@ func test_oneshot_multiple_take_1s():
 	assert_eq(oneshot.take(1), 3)
 	assert_eq(oneshot.take(1), 4)
 	assert_eq(oneshot.take(1), null)
-	assert_eq(oneshot.take(1), null)		
+	assert_eq(oneshot.take(1), null)
 		
 func test_oneshot_multiple_take_2s():
 	var oneshot = itertools.oneshot(itertools.integer_range(5))

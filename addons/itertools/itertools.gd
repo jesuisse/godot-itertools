@@ -5,6 +5,8 @@
 ##
 ## Requires Godot >= 4.5 for variadic argument list support.
 
+const version = "1.1.0-dev"
+
 const _protocol_methods = [&'_iter_init', &'_iter_next', &'_iter_get']
 
 static func _wrap_in_iterator(data) -> Iterator:
@@ -239,8 +241,8 @@ static func product(...iterators) -> IteratorOfArray:
 ## The iterator is consumed and its elements stored a single time upon iterator
 ## construction, so it must be finite!
 ## Given 1,2,3, returns [1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2] and [3,2,1]
-static func permutations(iterator: Iterator) -> IteratorOfArray:
-	return PermutationsIterator.new(iterator)
+static func permutations(iterator: Iterator, size : int = 0) -> IteratorOfArray:
+	return PermutationsIterator.new(iterator, size)
 
 
 ## Returns an iterator returns the elements of [param iterator] batched into
@@ -324,8 +326,7 @@ class OneshotIterator extends Iterator:
 		_it = iterator
 		_state = [&'blah']
 		_remaining = _it._iter_init(_state)
-		print(_state)
-	
+			
 	func _iter_init(state) -> bool:
 		return _remaining
 	
@@ -969,16 +970,17 @@ class CartesianProductIterator extends IteratorOfArray:
 		return false
 
 
-class PermutationsIterator extends IteratorOfArray:
+class PermutationsIteratorOrig extends IteratorOfArray:
 		
 	var _values : Array
 	var _taken : Array[bool]
 	var _perm: Array
+	var _size: int
 		
-	func _init(iterator: Iterator):
-		_values = []
+	func _init(iterator: Iterator, size: int = 0):
+		_values = []		
 		_taken = []
-		_perm = []
+		_perm = []		
 		if iterator.terminates():
 			# we protect production code from an endless loop by only doing this
 			# with iterators guaranteed to terminate
@@ -986,6 +988,11 @@ class PermutationsIterator extends IteratorOfArray:
 				_values.append(item)
 		else:
 			push_error("Cannot handle non-terminating iterators")
+		if size < 1:
+			_size = _values.size()
+		else:
+			_size = size
+				
 		_taken.resize(_values.size())
 		_perm.resize(_values.size())
 			
@@ -993,7 +1000,7 @@ class PermutationsIterator extends IteratorOfArray:
 		var state : Array[int]= []
 		if _values.is_empty():
 			return false
-		state.resize(_values.size()-1)
+		state.resize(_size-1)
 		state.fill(0)
 		superstate[0] = state
 		return not _values.is_empty()
@@ -1003,14 +1010,13 @@ class PermutationsIterator extends IteratorOfArray:
 		return _addone(state)
 		
 	func _iter_get(state) -> Array:
-		var l = _values.size()
 		_taken.fill(false)
 		var num	
-		for i in range(l-1):
+		for i in range(_size-1):
 			num = _freeidx(state[i], _taken) 
 			_perm[i] = _values[num]
 			_taken[num]= true
-		_perm[l-1] = _values[_taken.find(false)]
+		_perm[_size-1] = _values[_taken.find(false)]
 		return _perm
 	
 	func terminates() -> bool:
@@ -1047,6 +1053,112 @@ class PermutationsIterator extends IteratorOfArray:
 			else:
 				break
 		return unfinished
+
+
+class PermutationsIterator extends IteratorOfArray:
+		
+	var _values : Array
+	# should be moved into state
+	var _indices : Array[int]
+	# the current permutation
+	var _perm: Array
+	var _size: int
+		
+	func _init(iterator: Iterator, size: int = 0):
+		_values = []
+		_indices = []
+		_perm = []
+		if iterator.terminates():
+			# we protect production code from an endless loop by only doing this
+			# with iterators guaranteed to terminate
+			for item in iterator:
+				_values.append(item)
+		else:
+			push_error("Cannot handle non-terminating iterators")
+		if size < 1:
+			_size = _values.size()
+		else:
+			_size = size
+				
+		_indices.resize(_values.size())
+		_perm.resize(_size)
+			
+	func _iter_init(superstate) -> bool:
+		var state : Array[int]= []
+		if _values.is_empty():
+			return false
+		state.resize(_size)
+		superstate[0] = state
+		var n = _values.size()
+		for i in range(n):
+			_indices[i] = i
+		for i in range(_size):
+			state[i] = n-i
+		
+		return not _values.is_empty()
+	
+	func _iter_next(superstate) -> bool:
+		var state = superstate[0]
+		return _subone(state)
+		
+	func _iter_get(state) -> Array:
+		for i in range(_size):
+			_perm[i] = _values[_indices[i]]
+		return _perm
+			
+	func terminates() -> bool:
+		return true
+		
+	func is_infinite() -> bool:
+		return false
+
+	# to understand what happens here, imagine a combination lock where the
+	# leftmost wheel has n numbers, the wheel to its right has only n-1 
+	# numbers etc and we're counting down from the largest number to 0.
+	# assuming we have 4 different elements (A-D), the initial combination
+	# is 4321.
+	# Each number represents the index of the position with which we swap. 
+	# Assume we're dealing with only 2 positions. Our initial state is 43.
+	# when we call _subone, we change this state to 42 (with i=1). We then
+	# use the number 2 at state pos 1 (named j) as the target to swap the
+	# i and j target values in _indices, meaning we get 0 2 1 3 (AC). Now
+	# that state is 42, it will be decremented to 41, and the swap will
+	# therefore swap indices 1 and 4-1=3, to get 0 3 1 2 (AD). In the next
+	# round, we get to state 40 and move the index at pos 1 to the end, 
+	# shifting the rest on position to the left to yield 0 1 2 3 (the 
+	# original configuration). The state is reset to the max for position i,
+	# so it switches back to 43. However, i now gets decremented and in the
+	# next round we have i=0 and decrement the state to 33. This will swap
+	# indices 0 and 1, yielding 1 0 2 3 (BA), and so on.
+	func _subone(state) -> bool:
+		var index : int
+		var j : int
+		var n : int = _values.size()
+		var i : int = _size-1
+		while i>=0:
+			state[i] -= 1
+			if state[i] == 0:
+				# rotate indices from pos i leftwards to get initial ordering
+				# from pos i onwards. e.g. [0 3 1 2] -> [0 1 2 3] (for i=1)
+				index = _indices[i]
+				j = i
+				while j < n-1:
+					_indices[j] = _indices[j+1]
+					j += 1
+				_indices[n-1] = index
+				state[i] = n - i # set maximum for this position
+			else:
+				j = state[i]
+				# swap indices at i and n-j
+				index = _indices[i]
+				_indices[i] = _indices[n-j]
+				_indices[n-j] = index
+				return true
+			i -= 1
+		# if we've exhausted all permutations, signal stop (false)
+		return i >= 0
+		
+		
 
 class WrapperIterator extends Iterator:
 	
