@@ -8,6 +8,8 @@ This addon provides a single source file library of custom iterators inspired by
 Python's itertools module. Most of the Python module's functionality is 
 re-implemented in GDScript.
 
+Requires Godot 4.5 or later.
+
 ## Quickstart
 
 ### Installation
@@ -37,33 +39,33 @@ it available to your scripts:
 
 ### Using itertools with your own iterators
 
-All itertools iterators use the itertools.Iterator base class as a type for
-iterator parameters. This will lead to type mismatches when you try to pass
+All itertools iterators use the `itertools.Iterator` base class as a type for
+iterator parameters. This will lead to type errors when you try to pass
 your own object to an itertools function:
 	
 	var your_iterable = IterableObjectYouWroteYourself.new(...)
-	
 	for x in itertools.permutations(your_iterable):
 		...
 	
-itertools.permutations will complain about a type mismatch with your iterable.
+This won't work; itertools.permutations will complain about your_iterable 
+having the wrong type.
 
 There are two solutions to this problem:
 	
-	1. Make IterableObjectYouWroteYourself inherit from itertools.Iterator
-	2. Wrap it in a call to itertools.iter()
+  1. Make IterableObjectYouWroteYourself inherit from itertools.Iterator
+  2. Wrap it in a call to itertools.iter()
 	
 Solution 2 looks like this:
 	
 	var your_iterable = IterableObjectYouWroteYourself.new(...)
-	
 	for x in itertools.permutations(itertools.iter(your_iterable)):
 		...
 
-Note that this only works if your class also implements the `terminates()`
-and `is_infinite` methods, because `itertools.permutations` will not risk 
-an encounter with an infinite stream of elememnts which might be provided by 
-your object.
+Note that this specific example only works if your class implements 
+the `terminates()` and `is_infinite()` methods, because `itertools.permutations`
+will not risk an encounter with an infinite stream of elememnts which might be 
+provided by your object - it needs these methods to ensure that it will deal
+with an iterator that terminates.
 
 ## Provided Iterators
 
