@@ -250,6 +250,9 @@ static func permutations(iterator: Iterator) -> IteratorOfArray:
 static func batched(iterator: Iterator, size: int, fill_value=null) -> IteratorOfArray:
 	return BatchIterator.new(iterator, size, fill_value)
 
+static func oneshot(iterator: Iterator) -> Iterator:
+	return OneshotIterator.new(iterator)
+
 ## Returns a value by passing the first two elements of [param iterator] to [param function]
 ## and then calling the function again with the result and the third element, etc, until the
 ## whole iterator has been processed. 
@@ -310,6 +313,57 @@ static func reduce(function: Callable, iterator: Iterator, initializer=&'unset')
 ## Iterator which yields Arrays
 @abstract class IteratorOfArray extends Iterator:
 	pass
+
+## A iterator which is only initialized once; upon object creation.
+class OneshotIterator extends Iterator:
+	var _it: Iterator
+	var _state: Array
+	var _remaining: bool	
+	
+	func _init(iterator: Iterator):
+		_it = iterator
+		_state = [&'blah']
+		_remaining = _it._iter_init(_state)
+		print(_state)
+	
+	func _iter_init(state) -> bool:
+		return _remaining
+	
+	func _iter_next(state) -> bool:
+		# Hack: use our _state instead of passed-in state.
+		_remaining = _it._iter_next(_state)
+		return _remaining
+	
+	func _iter_get(state):
+		# Hack: state is null for some reason I can't see. _state should work.
+		return _it._iter_get(_state[0])
+		
+	func terminates() -> bool:
+		return _it.terminates()
+	
+	func is_infinite() -> bool:
+		return _it.is_infinite()
+		
+	## Returns [param count] elements, or all which are left if
+	## there are less than count elements left. For count > 1,
+	## this returns an Array. count = 0 returns [param novalue],
+	#  as does a call to take(1) when the iterator is exhausted.
+	func take(count: int, no_value=null):
+		if count == 0:
+			return no_value
+		var values = []
+		var i = 0
+		while _remaining and i < count:
+			values.append(_iter_get(_state[0]))
+			i += 1
+			_remaining = _iter_next(_state)
+		if count == 1:
+			if values.is_empty():
+				return no_value
+			else:
+				return values[0]
+		else:
+			return values
 
 
 ## An iterator which will iterate over a slice of an array

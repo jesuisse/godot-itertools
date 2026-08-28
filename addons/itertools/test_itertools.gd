@@ -751,6 +751,54 @@ func test_iter_other_object():
 		result.append(c)
 	assert_push_error_count(1)
 	node.free()
+
+func test_oneshot_empty():
+	var result = itertools.oneshot(itertools.integer_range(0))
+	assert_eq(itertools.list(result), [])
+
+func test_oneshot_single_element():
+	var result = itertools.oneshot(itertools.integer_range(5, 6))
+	assert_eq(itertools.list(result), [5])
+
+func test_oneshot_multiple_elements():
+	var result = itertools.oneshot(itertools.integer_range(10))
+	assert_eq(itertools.list(result), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+func test_oneshot_exhausts_after_one_pass():
+	var result = itertools.oneshot(itertools.integer_range(10))
+	assert_eq(itertools.list(result), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+	assert_eq(itertools.list(result), [])
+
+func test_oneshot_take_1_from_empty():
+	var oneshot = itertools.oneshot(itertools.integer_range(0))
+	assert_eq(oneshot.take(0), null)
+	assert_eq(oneshot.take(0, &'novalue'), &'novalue')
+
+func test_oneshot_multiple_take_1s():
+	var oneshot = itertools.oneshot(itertools.integer_range(5))	
+	assert_eq(oneshot.take(1), 0)
+	assert_eq(oneshot.take(1), 1)
+	assert_eq(oneshot.take(1), 2)
+	assert_eq(oneshot.take(1), 3)
+	assert_eq(oneshot.take(1), 4)
+	assert_eq(oneshot.take(1), null)
+	assert_eq(oneshot.take(1), null)		
+		
+func test_oneshot_multiple_take_2s():
+	var oneshot = itertools.oneshot(itertools.integer_range(5))
+	assert_eq(oneshot.take(2), [0, 1])
+	assert_eq(oneshot.take(2), [2, 3])
+	assert_eq(oneshot.take(2), [4])
+	assert_eq(oneshot.take(2), [])
+	
+func test_oneshot_combine_with_for():
+	var oneshot = itertools.oneshot(itertools.integer_range(5))
+	assert_eq(oneshot.take(1), 0)
+	var result = []
+	for i in oneshot:
+		result.append(i)
+	assert_eq(result, [1, 2, 3, 4])
+	
 	
 func test_reduce_empty_error():
 	var result = itertools.reduce(func (x, y): return x+y, itertools.integer_range(0))
