@@ -206,8 +206,8 @@ exhausted, it will stay exhausted. GDScript iterators are reinitialized in every
 means that the following behaves differently from what you'd expect in Python:
 	
 	var santa_says = itertools.repeat("ho", 3)
-	var result1 = list(santa_says)
-	var result2 = list(santa_says)
+	var result1 = itertools.list(santa_says)
+	var result2 = itertools.list(santa_says)
 	
 In Python `result1` would be `['ho', 'ho', 'ho']` and `result2` would be an empty list because the 
 `santa_says` iterator was fully consumed by the first `list` call. GDscript's itertools
@@ -220,8 +220,8 @@ gets initialized once upon object creation and will stay exhausted once all its 
 consumed:
 	
     var santa_says = itertools.oneshot(itertools.repeat("ho", 3))
-	var result1 = list(santa_says)
-	var result2 = list(santa_says)
+	var result1 = itertools.list(santa_says)
+	var result2 = itertools.list(santa_says)
 	print(result2)
 	# prints [], an empty list
 
