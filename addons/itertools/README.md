@@ -156,6 +156,11 @@ The following iterators are implemented:
    
    Given 1,2,3, returns [1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2] and [3,2,1].
 
+   You can specifiy get smaller output sizes as well:
+	
+   Given 1,2,3, a size of 2 returns [1,2], [1,3], [2,1], [2,3], [3,1], [3,3]
+
+
 ## Non-iterator helper functions:
 
    `list`: Takes an iterator as an argument and returns an array of all the elements the

@@ -237,10 +237,13 @@ static func product(...iterators) -> IteratorOfArray:
 	return CartesianProductIterator.new(iterators)
 
 ## Returns all possible orderings of the elements of [param iterator] as arrays.
-## elements are not repeated. 
+## elements are not repeated. [param size] determines the number of positions
+## you want in the permutation.
 ## The iterator is consumed and its elements stored a single time upon iterator
 ## construction, so it must be finite!
 ## Given 1,2,3, returns [1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2] and [3,2,1]
+## A size of 2 with the same input iterator returns [1,2], [1,3], [2,1], [2,3],
+## [3,1],[3,2].
 static func permutations(iterator: Iterator, size : int = 0) -> IteratorOfArray:
 	return PermutationsIterator.new(iterator, size)
 
