@@ -1057,17 +1057,11 @@ class PermutationsIteratorOrig extends IteratorOfArray:
 
 class PermutationsIterator extends IteratorOfArray:
 		
-	var _values : Array
-	# should be moved into state
-	var _indices : Array[int]
-	# the current permutation
-	var _perm: Array
+	var _values : Array	
 	var _size: int
 		
 	func _init(iterator: Iterator, size: int = 0):
 		_values = []
-		_indices = []
-		_perm = []
 		if iterator.terminates():
 			# we protect production code from an endless loop by only doing this
 			# with iterators guaranteed to terminate
@@ -1079,32 +1073,32 @@ class PermutationsIterator extends IteratorOfArray:
 			_size = _values.size()
 		else:
 			_size = size
-				
-		_indices.resize(_values.size())
-		_perm.resize(_size)
+			
 			
 	func _iter_init(superstate) -> bool:
 		var state : Array[int]= []
+		var indices : Array[int] = []
 		if _values.is_empty():
 			return false
 		state.resize(_size)
-		superstate[0] = state
+		indices.resize(_values.size())
+		superstate[0] = [state, indices]
 		var n = _values.size()
 		for i in range(n):
-			_indices[i] = i
+			indices[i] = i
 		for i in range(_size):
 			state[i] = n-i
 		
 		return not _values.is_empty()
 	
 	func _iter_next(superstate) -> bool:
-		var state = superstate[0]
-		return _subone(state)
+		return _subone(superstate[0][0], superstate[0][1])
 		
 	func _iter_get(state) -> Array:
+		var permutation : Array = []
 		for i in range(_size):
-			_perm[i] = _values[_indices[i]]
-		return _perm
+			permutation.append(_values[state[1][i]])
+		return permutation
 			
 	func terminates() -> bool:
 		return true
@@ -1130,7 +1124,7 @@ class PermutationsIterator extends IteratorOfArray:
 	# so it switches back to 43. However, i now gets decremented and in the
 	# next round we have i=0 and decrement the state to 33. This will swap
 	# indices 0 and 1, yielding 1 0 2 3 (BA), and so on.
-	func _subone(state) -> bool:
+	func _subone(state, indices) -> bool:
 		var index : int
 		var j : int
 		var n : int = _values.size()
@@ -1138,21 +1132,21 @@ class PermutationsIterator extends IteratorOfArray:
 		while i>=0:
 			state[i] -= 1
 			if state[i] == 0:
-				# rotate indices from pos i leftwards to get initial ordering
+				# rotate indices from pos i leftwards to restore initial ordering
 				# from pos i onwards. e.g. [0 3 1 2] -> [0 1 2 3] (for i=1)
-				index = _indices[i]
+				index = indices[i]
 				j = i
 				while j < n-1:
-					_indices[j] = _indices[j+1]
+					indices[j] = indices[j+1]
 					j += 1
-				_indices[n-1] = index
+				indices[n-1] = index
 				state[i] = n - i # set maximum for this position
 			else:
 				j = state[i]
 				# swap indices at i and n-j
-				index = _indices[i]
-				_indices[i] = _indices[n-j]
-				_indices[n-j] = index
+				index = indices[i]
+				indices[i] = indices[n-j]
+				indices[n-j] = index
 				return true
 			i -= 1
 		# if we've exhausted all permutations, signal stop (false)
