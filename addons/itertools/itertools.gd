@@ -5,7 +5,7 @@
 ##
 ## Requires Godot >= 4.5 for variadic argument list support.
 
-const version = "1.1.0"
+const version = "1.2.0-unstable"
 
 const _protocol_methods = [&'_iter_init', &'_iter_next', &'_iter_get']
 
