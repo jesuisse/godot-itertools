@@ -1,11 +1,13 @@
 ## These are unittests which you can run if you install the GUT addon.
 ## The addon is a third-party addon not affiliated with itertools, and is
 ## not included in the itertools codebase.
+## The tests make sure the public-facing API of itertools works as intended.
 
 extends GutTest
 
 const itertools = preload("itertools.gd")
 
+## Needed for testing iter() with an iterator-protocol-conforming object
 class _Dummy_Iterator extends Object:	
 	func _init():
 		pass
@@ -17,6 +19,8 @@ class _Dummy_Iterator extends Object:
 		return state[0] < 5
 	func _iter_get(state):
 		return "dummy"
+
+## list() is tested first because later tests depend on it :-(
 
 func test_list_empty():
 	var result = []
@@ -214,6 +218,67 @@ func test_filter_it_even():
 	for i in filter_it:
 		result.append(i)
 	assert_eq(result, [0, 2, 4, 6, 8])
+
+func test_dropwhile_empty():
+	var test_array = []
+	var it = itertools.array_slice(test_array)
+	var dropwhile_it = itertools.dropwhile(func (x): return false, it)
+	assert_eq(itertools.list(dropwhile_it), [])
+
+func test_dropwhile_single():
+	var test_array = [1]
+	var it = itertools.array_slice(test_array)
+	var dropwhile_it = itertools.dropwhile(func (x): return false, it)
+	assert_eq(itertools.list(dropwhile_it), [1])
+	
+func test_dropwhile_single_drop():
+	var test_array = [1]
+	var it = itertools.array_slice(test_array)
+	var dropwhile_it = itertools.dropwhile(func (x): return x == 1, it)
+	assert_eq(itertools.list(dropwhile_it), [])
+
+func test_dropwhile_multiples():
+	var test_array = [1, 1, 1, 1, 2, 2, 1, 2, 3]
+	var it = itertools.array_slice(test_array)
+	var dropwhile_it = itertools.dropwhile(func (x): return x == 1, it)
+	assert_eq(itertools.list(dropwhile_it), [2, 2, 1, 2, 3])
+
+func test_dropwhile_drop_everything():
+	var test_array = [1, 1, 1, 1, 1]
+	var it = itertools.array_slice(test_array)
+	var dropwhile_it = itertools.dropwhile(func (x): return x == 1, it)
+	assert_eq(itertools.list(dropwhile_it), [])
+
+func test_takewhile_empty():
+	var test_array = []
+	var it = itertools.array_slice(test_array)
+	var dropwhile_it = itertools.takewhile(func (x): return true, it)
+	assert_eq(itertools.list(dropwhile_it), [])
+
+func test_takewhile_single_true():
+	var test_array = [1]
+	var it = itertools.array_slice(test_array)
+	var dropwhile_it = itertools.takewhile(func (x): return x == 1, it)
+	assert_eq(itertools.list(dropwhile_it), [1])
+
+func test_takewhile_single_false():
+	var test_array = [0]
+	var it = itertools.array_slice(test_array)
+	var dropwhile_it = itertools.takewhile(func (x): return x == 1, it)
+	assert_eq(itertools.list(dropwhile_it), [])
+
+func test_takewhile_multiple_all():
+	var test_array = [1, 1, 1, 1, 1]
+	var it = itertools.array_slice(test_array)
+	var dropwhile_it = itertools.takewhile(func (x): return x == 1, it)
+	assert_eq(itertools.list(dropwhile_it), [1, 1, 1, 1, 1])
+
+func test_takewhile_multiple_first_four():
+	var test_array = [1, 2, 1, 3, 0, 0, 0, 2, 3, 1]
+	var it = itertools.array_slice(test_array)
+	var dropwhile_it = itertools.takewhile(func (x): return x > 0, it)
+	assert_eq(itertools.list(dropwhile_it), [1, 2, 1, 3])
+
 	
 func test_zip_it_simple():
 	var it1 = itertools.array_slice(range(3))

@@ -169,6 +169,17 @@ static func map(function: Callable, ...iterators) -> Iterator:
 			assert(item is Iterator, "all arguments to map() following the Callable must be of type Iterator")
 	return MapIterator.new(function, iterators)
 
+## Drops elements from the iterator as long as [param predicate] returns
+## true and then returns the rest of the elements.
+static func dropwhile(function: Callable, iterator: Iterator) -> Iterator:
+	return DropWhileIterator.new(function, iterator)
+	
+## Takes elements from the iterator as long as [param predicate] returns
+## true and then drops the rest of the elements.
+static func takewhile(function: Callable, iterator: Iterator) -> Iterator:
+	return TakeWhileIterator.new(function, iterator)
+
+
 ## Returns an iterator which will yield an array of values, 
 ## each value obtained by kicking one of the [param iterators].
 ## If the iterators don't supply the same amount of values, the
@@ -284,8 +295,6 @@ static func reduce(function: Callable, iterator: Iterator, initializer=&'unset')
 		first = function.call(first, iterator._iter_get(state[0]))
 		remaining = iterator._iter_next(state)
 	return first
-
-
 
 ## This simply defines the custom iterator protocol used by GDScript to make
 ## the function signatures of the iterator functions explicit. This may help
@@ -591,7 +600,76 @@ class MapIterator extends Iterator:
 				return false
 		return true
 
+class DropWhileIterator extends Iterator:
+	var _predicate: Callable
+	var _it: Iterator
+		
+	func _init(predicate: Callable, iterator: Iterator):
+		_predicate = predicate
+		_it = iterator
+	
+	func terminates() -> bool:
+		return _it.terminates()
+		
+	func is_infinite() -> bool:
+		return _it.is_infinite()
 
+	func _forward_to_matching_item(superstate, remaining) -> bool:
+		while remaining:
+			var item = _it._iter_get(superstate[0])
+			if not _predicate.call(item):
+				break
+			remaining = _it._iter_next(superstate)
+		return remaining
+	
+	func _iter_init(superstate) -> bool: 
+		# state of _it and current element		
+		var remaining = _it._iter_init(superstate)
+		remaining = _forward_to_matching_item(superstate, remaining)
+		return remaining
+
+	func _iter_next(superstate) -> bool:		
+		return _it._iter_next(superstate)
+			
+	func _iter_get(state):
+		return _it._iter_get(state)
+		
+	func _to_string() -> String:
+		return "<DropWhileIterator>"
+
+class TakeWhileIterator extends Iterator:
+	var _predicate: Callable
+	var _it: Iterator
+		
+	func _init(predicate: Callable, iterator: Iterator):
+		_predicate = predicate
+		_it = iterator
+	
+	func terminates() -> bool:
+		return _it.terminates()
+		
+	func is_infinite() -> bool:
+		return _it.is_infinite()
+	
+	func _iter_init(superstate) -> bool:
+		var remaining = _it._iter_init(superstate)
+		if remaining:
+			var item = _it._iter_get(superstate[0])
+			remaining = _predicate.call(item)
+		return remaining
+
+	func _iter_next(superstate) -> bool:
+		var remaining = _it._iter_next(superstate)
+		if remaining:
+			var item = _it._iter_get(superstate[0])
+			remaining = _predicate.call(item)
+		return remaining
+			
+	func _iter_get(state):
+		return _it._iter_get(state)
+		
+	func _to_string() -> String:
+		return "<TakeWhileIterator>"
 
 class ZipIterator extends IteratorOfArray:	
 	var _its: Array
@@ -638,6 +716,9 @@ class ZipIterator extends IteratorOfArray:
 			if not it.is_infinite():
 				return false
 		return true
+		
+	func _to_string() -> String:
+		return "<ZipIterator>"
 		
 
 class ZipLongestIterator extends IteratorOfArray:
@@ -697,6 +778,9 @@ class ZipLongestIterator extends IteratorOfArray:
 				return true
 		return false
 
+	func _to_string() -> String:
+		return "<ZipLongestIterator>"
+
 class BatchIterator extends IteratorOfArray:
 	var _it: Iterator
 	var _fill_value
@@ -737,6 +821,9 @@ class BatchIterator extends IteratorOfArray:
 	
 	func is_infinite() -> bool:
 		return _it.is_infinite()
+
+	func _to_string() -> String:
+		return "<BatchIterator>"
 
 
 class ChainIterator extends Iterator:	
@@ -793,6 +880,10 @@ class ChainIterator extends Iterator:
 			if it.is_infinite():
 				return true
 		return false
+		
+	func _to_string() -> String:
+		return "<ChainIterator>"
+
 
 class CycleIterator extends Iterator:
 	var _it
@@ -819,7 +910,7 @@ class CycleIterator extends Iterator:
 			# we're out of repeats
 			return false
 		else:
-			# prepare next round
+			# prepare next round - reinitialize iterator
 			state[0][0] = [null]
 			return _it._iter_init(state[0][0])
 			
@@ -831,6 +922,10 @@ class CycleIterator extends Iterator:
 		
 	func is_infinite() -> bool:
 		return _count == -1
+		
+	func _to_string() -> String:
+		return "<CycleIterator>"
+
 
 class RepeatIterator extends Iterator:
 	var _value
@@ -859,6 +954,10 @@ class RepeatIterator extends Iterator:
 		
 	func is_infinite() -> bool:
 		return _count == -1
+	
+	func _to_string() -> String:
+		return "<RepeatIterator>"
+
 
 
 class CompressIterator extends Iterator:
@@ -909,6 +1008,9 @@ class CompressIterator extends Iterator:
 		
 	func is_infinite() -> bool:
 		return _data.is_infinite() and _selector.is_infinite()
+	
+	func _to_string() -> String:
+		return "<CompressIterator>"
 
 
 class CartesianProductIterator extends IteratorOfArray:
@@ -971,91 +1073,10 @@ class CartesianProductIterator extends IteratorOfArray:
 		
 	func is_infinite() -> bool:
 		return false
-
-
-class PermutationsIteratorOrig extends IteratorOfArray:
-		
-	var _values : Array
-	var _taken : Array[bool]
-	var _perm: Array
-	var _size: int
-		
-	func _init(iterator: Iterator, size: int = 0):
-		_values = []		
-		_taken = []
-		_perm = []		
-		if iterator.terminates():
-			# we protect production code from an endless loop by only doing this
-			# with iterators guaranteed to terminate
-			for item in iterator:
-				_values.append(item)
-		else:
-			push_error("Cannot handle non-terminating iterators")
-		if size < 1:
-			_size = _values.size()
-		else:
-			_size = size
-				
-		_taken.resize(_values.size())
-		_perm.resize(_values.size())
-			
-	func _iter_init(superstate) -> bool:
-		var state : Array[int]= []
-		if _values.is_empty():
-			return false
-		state.resize(_size-1)
-		state.fill(0)
-		superstate[0] = state
-		return not _values.is_empty()
 	
-	func _iter_next(superstate) -> bool:
-		var state = superstate[0]
-		return _addone(state)
-		
-	func _iter_get(state) -> Array:
-		_taken.fill(false)
-		var num	
-		for i in range(_size-1):
-			num = _freeidx(state[i], _taken) 
-			_perm[i] = _values[num]
-			_taken[num]= true
-		_perm[_size-1] = _values[_taken.find(false)]
-		return _perm
-	
-	func terminates() -> bool:
-		return true
-		
-	func is_infinite() -> bool:
-		return false
+	func _to_string() -> String:
+		return "<CartesianProductIterator (%d values)>" % _values.size()
 
-	## [param used] tells us which indices are still
-	## available, [param num] tells us which of those
-	## to take (0 for the first, 1 for the second etc).
-	## p returns the index.
-	func _freeidx(num: int, used: Array[bool]) -> int:
-		var p : int = -1
-		for i in range(num+1):
-			p = used.find(false, p+1)
-			if p == -1:
-				assert("This shouldn't happen - no free indices left")
-				break
-		return p
-
-	func _addone(state) -> bool:
-		var l : int = state.size()
-		var max : int
-		var unfinished : bool = l > 0
-		for i in range(l):
-			max = i+2
-			var x = l-i-1
-			state[x] = state[x] + 1
-			if state[x] >= max:
-				state[x] = 0
-				if i == l-1:
-					unfinished=false
-			else:
-				break
-		return unfinished
 
 
 class PermutationsIterator extends IteratorOfArray:
@@ -1111,9 +1132,9 @@ class PermutationsIterator extends IteratorOfArray:
 
 	# to understand what happens here, imagine a combination lock where the
 	# leftmost wheel has n numbers, the wheel to its right has only n-1 
-	# numbers etc and we're counting down from the largest number to 0.
-	# assuming we have 4 different elements (A-D), the initial combination
-	# is 4321.
+	# numbers etc and we're counting down from the largest number to 0. i 
+	# denotes the position of the wheel we're currently turning. assuming we
+	# have 4 different elements (say A-D), the initial combination is 4321.
 	# Each number represents the index of the position with which we swap. 
 	# Assume we're dealing with only 2 positions. Our initial state is 43.
 	# when we call _subone, we change this state to 42 (with i=1). We then
@@ -1154,6 +1175,9 @@ class PermutationsIterator extends IteratorOfArray:
 			i -= 1
 		# if we've exhausted all permutations, signal stop (false)
 		return i >= 0
+
+	func _to_string() -> String:
+		return "<PermutationsIterator (n=%d k=%d)>" % [_values.size(), _size]
 		
 		
 
@@ -1188,3 +1212,6 @@ class WrapperIterator extends Iterator:
 		else:
 			# means we don't know
 			return false
+	
+	func _to_string() -> String:
+		return "<WrapperIterator for %s >" % str(_object)

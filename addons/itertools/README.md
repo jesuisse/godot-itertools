@@ -1,16 +1,15 @@
 
 # Iterator tools for GDScript
 
-GDScript supports custom iterators. This allows you to iterate over any object
-which implements the iterator protocol using a simple for loop.
+Godot Engine's GDScript has a custom iterator protocol. This allows you to iterate over any object
+which implements this protocol using a simple for loop.
 
-This addon provides a single source file library of custom iterators inspired by
-Python's itertools module. Most of the Python module's functionality is 
-re-implemented in GDScript.
+The *itertools* addon provides a single source file library of custom iterators inspired by
+Python's itertools module. Most of the Python module's functionality is re-implemented in GDScript.
 
 Requires Godot 4.5 or later.
 
-## Quickstart
+## Getting started
 
 ### Installation
 
@@ -47,15 +46,15 @@ your own object to an itertools function:
 	for x in itertools.permutations(your_iterable):
 		...
 	
-This won't work; itertools.permutations will complain about your_iterable 
+This won't work; `itertools.permutations` will complain about `your_iterable` 
 having the wrong type.
 
 There are two solutions to this problem:
 	
-  1. Make IterableObjectYouWroteYourself inherit from itertools.Iterator
-  2. Wrap it in a call to itertools.iter()
+  1. Make IterableObjectYouWroteYourself inherit from `itertools.Iterator`
+  2. Wrap it in a call to `itertools.iter()`
 	
-Solution 2 looks like this:
+Solution 2 is usually easier and looks like this:
 	
 	var your_iterable = IterableObjectYouWroteYourself.new(...)
 	for x in itertools.permutations(itertools.iter(your_iterable)):
@@ -63,8 +62,8 @@ Solution 2 looks like this:
 
 Note that this specific example only works if your class implements 
 the `terminates()` and `is_infinite()` methods, because `itertools.permutations`
-will not risk an encounter with an infinite stream of elememnts which might be 
-provided by your object - it needs these methods to ensure that it will deal
+will not risk an encounter with an infinite stream of elements which might be 
+provided by your object - it needs these methods to ensure that it deals
 with an iterator that terminates.
 
 ## Provided Iterators
@@ -101,9 +100,16 @@ The following iterators are implemented:
    initialized once, upon object creation, and after all elements are consumed,
    it will stay exhausted. Use this if a) you need Python's iterator behaviour
    or b) if you want to manually take a number of elements from an iterator
-   using the oneshot iterator's `take` method.
+   using the oneshot iterator's `take` method. No other iterator provides this
+   method (because no other iterator object has access to its own state).
 
    `filter`: Filters values from another iterator based on a predicate function.
+
+   `dropwhile`: Drops values from a given iterator while predicate function returns
+	true and yields the rest of the values.
+	
+   `takewhile`: Yields values from a given iterator while predicate function returns
+	true and drops the rest of the values.
 
    `compress`: Selects items from a data iterator based on the corresponding truth
    values of a selection iterator.
@@ -224,16 +230,21 @@ If you need Pythonic iterator behaviour, wrap iterators using the `oneshot` iter
 gets initialized once upon object creation and will stay exhausted once all its elements are
 consumed:
 	
-    var santa_says = itertools.oneshot(itertools.repeat("ho", 3))
+	var santa_says = itertools.oneshot(itertools.repeat("ho", 3))
 	var result1 = list(santa_says)
 	var result2 = list(santa_says)
 	print(result2)
 	# prints [], an empty list
 
+(The deeper difference between GDScript's and Python's iterator behaviour is that GDScript 
+iterator objects provide iterator behaviour, but generally do not have access to their iteration
+state. This is why most itertools iterators cannot provide you with a take() method - they have no 
+way to change the iterator's state, e.g. advance it after the take.)
+
 ## Unit testing
 
-`itertools` comes with a number of unit tests for GUT. However, the third-party GUT addon is not
+`itertools` comes with a number of unit tests for GUT. The third-party GUT addon is *not*
  included in this addon. You need to install it yourself if you want to run the tests.
 
-The tests document how the various iterators can be used, so they might be worth a look if you 
-have trouble figuring out how to use the iterators.
+The tests cover most of the public-facing itertools API and document how the various iterators can
+be used, so they might be worth a look if you have trouble figuring out how to use the iterators.
