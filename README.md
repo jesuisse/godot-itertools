@@ -98,7 +98,7 @@ The following iterators are implemented:
    Consider: `iter([22])` builds an iterator with the single element 22. `iter(22)` 
    is an error. `iter([])` builds an empty iterator. `iter()` is an error.
    
-   `oneshot`: Makes the passed iterator into a 'oneshot'. It will only get 
+   `oneshot`: Returned iterator is a 'oneshot'. It will only get 
    initialized once, upon object creation, and after all elements are consumed,
    it will stay exhausted. Use this if a) you need Python's iterator behaviour
    or b) if you want to manually take a number of elements from an iterator
