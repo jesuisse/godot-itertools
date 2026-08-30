@@ -82,6 +82,8 @@ The following iterators are implemented:
    `array_rev`: Iterates over an array in reverse. Thin wrapper around array_slice 
    provided for convenience.
 
+   `dict_items`: Iterates over all (key, value) pairs of a provided Dictionary.
+  
    `string_slice`: Iterates over a portion of a string (or the whole string). This 
    is just a thin wrapper around `array_slice` provided for convenience.
 
@@ -170,8 +172,9 @@ The following iterators are implemented:
 ## Non-iterator helper functions:
 
    `list`: Takes an iterator as an argument and returns an array of all the elements the
-   iterator yields. Obviously, this only works for finite iterators. Don't use this with
-   iterators which yield infinite streams of objects. 
+   iterator yields. Obviously, this only works for finite iterators. If you use it with 
+   an iterator which yields an infinite stream of objects, you will get an error message
+   and an empty list.
 
    `reduce`: Takes a two-argument function and calls it with the first and second values
 	of the iterator, then calls the function with the result and the next value successively

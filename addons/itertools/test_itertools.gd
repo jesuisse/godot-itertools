@@ -179,8 +179,27 @@ func test_array_same_iterator_initialized_twice():
 	assert_eq(result1, [2, 3])
 	assert_eq(result2, [2, 3])
 	# Note: This is NOT what happens in Python! Python would yield an empty list
-	# for result2 because the iterator gets exhausted in the first iteration.		
+	# for result2 because the iterator gets exhausted in the first iteration.
 
+func test_dict_items_empty():
+	var dict = {}
+	var it = itertools.dict_items(dict)
+	assert_eq(itertools.list(it), [])
+
+func test_dict_items_single():
+	var dict = { 'a' : 1}
+	var it = itertools.dict_items(dict)
+	assert_eq(itertools.list(it), [['a', 1]])
+	
+func test_dict_items_multiple():
+	var dict = { 'a' : 1, 'b' : 2, 'c': 3}
+	var it = itertools.dict_items(dict)
+	var result = itertools.list(it)
+	var expected = [ ['a', 1], ['b', 2], ['c', 3] ]
+	
+	assert_true(result.size() == 3)
+	for item in expected:
+		assert_true(item in result)
 	
 func test_string_it_simple():
 	var test_string = "HELLO WORLD"

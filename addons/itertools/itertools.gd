@@ -5,7 +5,7 @@
 ##
 ## Requires Godot >= 4.5 for variadic argument list support.
 
-const version = "1.1.0-dev"
+const version = "1.1.0"
 
 const _protocol_methods = [&'_iter_init', &'_iter_next', &'_iter_get']
 
@@ -87,6 +87,11 @@ static func string_slice(str: String, start: int = 0, stop: int = -1) -> Iterato
 	for i in len(str):	
 		array[i] = str[i]
 	return ArraySliceIterator.new(array, start, stop)
+
+## Convenience function which returns a Zip Iterator which iterates
+## over a dictionary's (key, value) pairs.
+static func dict_items(dictionary: Dictionary) -> IteratorOfArray:
+	return ZipIterator.new([array_slice(dictionary.keys()), array_slice(dictionary.values())])
 
 ## This is an iterator version of the range() function. It
 ## returns an iterator which will produce a sequence of values
